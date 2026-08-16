@@ -12,6 +12,10 @@
 -- do what I think they do" are different claims, and only one is testable.
 -- ===========================================================================
 
+-- The editor will warn that _verify is "a table without Row Level Security".
+-- It is a TEMP table: it exists only for this editor session and is not
+-- reachable through the API at all. Choose "Run without RLS". The warning does
+-- not distinguish temp tables from real ones.
 create temp table if not exists _verify (n int, check_name text, result text);
 truncate _verify;
 
