@@ -446,7 +446,12 @@ grant select on public.tasters to anon, authenticated;
 -- column and a later column-level REVOKE does not narrow it, so listing the
 -- writable columns explicitly is the only thing that actually works.
 grant insert (id, display_name, theme)      on public.tasters to authenticated;
-grant update (display_name, theme)          on public.tasters to authenticated;
+-- id is included deliberately. PostgREST's upsert (resolution=merge-duplicates)
+-- issues ON CONFLICT DO UPDATE across every column in the payload, and the
+-- payload carries id, so without an UPDATE privilege on it the sign-in call
+-- fails with a permission error. Letting it be updated is safe: the policy's
+-- WITH CHECK (id = auth.uid()) rejects any value other than your own uid.
+grant update (id, display_name, theme)      on public.tasters to authenticated;
 
 grant select on public.rating_events to anon, authenticated;
 grant insert (taster_id, item_key, chocolate, texture, dough, salt, structure,

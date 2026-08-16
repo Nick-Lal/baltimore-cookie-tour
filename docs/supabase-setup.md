@@ -34,6 +34,12 @@ You should see no errors. If you get one about `pgcrypto`, run
 `create extension if not exists pgcrypto with schema extensions;` on its own
 first, then rerun the file.
 
+Then run `db/verify.sql`. It checks that row level security is actually on,
+that no view is quietly bypassing it, that nobody can update or delete a score,
+and that the constraints reject an out-of-range score, a score pointing at a
+menu item that does not exist, and a cortado scored on "salt balance". Every
+line it prints should say PASS. It writes nothing.
+
 ## 3. Turn on anonymous sign-ins
 
 Authentication, then Sign In / Providers. Switch on **Enable anonymous
@@ -61,7 +67,8 @@ Thirty is plenty.
 
 Settings, then API. Copy the **Project URL** and the **anon public** key.
 
-Copy `config/supabase.example.json` to `config/supabase.json` and fill them in:
+Send me those two values and I will do the rest. Or do it yourself: copy
+`config/supabase.example.json` to `config/supabase.json` and fill them in:
 
 ```json
 {
@@ -70,8 +77,10 @@ Copy `config/supabase.example.json` to `config/supabase.json` and fill them in:
 }
 ```
 
-Commit it if you like. The anon key is public by design, it appears in the page
-source either way, and it grants nothing on its own. What protects your data is
+**Commit that file.** GitHub Pages serves what is in the repository, so if it
+is ignored the deployed site never sees it and silently stays on device-only
+storage. The anon key is public by design, it appears in the page source either
+way, and it grants nothing on its own. What protects your data is
 the row level security policies, not the secrecy of that key. The one key you
 must never put in this file, or anywhere in the repo, is the **service role**
 key, which bypasses every policy.
