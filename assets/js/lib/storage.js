@@ -42,6 +42,7 @@ const KEYS = {
   session: `${NS}.session`,
   outbox: `${NS}.outbox`,
   party: `${NS}.party`,
+  roster: `${NS}.roster`,
 };
 
 export const itemKey = (stopId, itemId) => `${stopId}:${itemId}`;
@@ -394,7 +395,13 @@ export class SupabaseAdapter {
 
   _queue(row) {
     const rows = this._readOutbox();
-    rows.push({ ...row, _queued_at: new Date().toISOString() });
+    rows.push({
+      ...row,
+      _queued_at: new Date().toISOString(),
+      // Who wrote this, recorded at queue time. Two people can share a phone,
+      // and the queue outlives whichever of them is currently active.
+      _taster_name: this._taster?.display_name ?? 'You',
+    });
     this._writeOutbox(rows);
   }
 
@@ -408,7 +415,14 @@ export class SupabaseAdapter {
     let sent = 0;
     try {
       for (const row of rows) {
-        const { _queued_at, ...body } = row;
+        // Only send what the CURRENT session is allowed to send. The insert
+        // policy checks taster_id = auth.uid(), so posting the other person's
+        // queued score under this JWT is a 403 — and a 403 is not a network
+        // error, so the catch below would have thrown their cookie away. Hold
+        // it instead; it goes out when they are switched back in.
+        if (row.taster_id !== this.userId) { left.push(row); continue; }
+
+        const { _queued_at, _taster_name, ...body } = row;
         try {
           await this._rest('rating_events', { method: 'POST', body });
           sent++;
@@ -583,7 +597,127 @@ export class SupabaseAdapter {
   }
 
   async getTaster() { return this._taster; }
-  async listProfiles() { return this._taster ? [this._taster] : []; }
+
+  /* ------------------------------------------------- two people, one phone --
+   * The device-only adapter has kept a list of tasters since the beginning,
+   * because without one the second person to type their name would inherit the
+   * first person's scores. The cloud adapter shipped without it, and the live
+   * site runs on the cloud adapter, so on the deployed site the feature was
+   * dead code.
+   *
+   * It cannot work the same way here. tasters.id is a foreign key to
+   * auth.users, so one signed-in user is exactly one taster, by construction,
+   * and no amount of client code changes that. What the browser CAN hold is
+   * more than one session. So a second taster is a second anonymous sign-in,
+   * and switching is swapping which session is active. Both join the same
+   * party, so the two of them still land on one leaderboard.
+   *
+   * The consequence worth knowing: each profile is a separate auth identity,
+   * so attaching an email upgrades only the profile that is active when you do
+   * it. That is the honest behaviour rather than a bug — the alternative would
+   * be silently merging two people's scores under one login.
+   */
+
+  _readRoster() {
+    try {
+      const rows = JSON.parse(localStorage.getItem(KEYS.roster) || '[]');
+      return Array.isArray(rows) ? rows : [];
+    } catch { return []; }
+  }
+
+  _writeRoster(rows) {
+    try { localStorage.setItem(KEYS.roster, JSON.stringify(rows)); } catch { /* full */ }
+  }
+
+  /** Fold the live session back into the roster so a switch never loses it. */
+  _rememberCurrent() {
+    if (!this.session || !this.userId) return;
+    const rows = this._readRoster().filter((r) => r.id !== this.userId);
+    rows.push({
+      id: this.userId,
+      display_name: this._taster?.display_name ?? 'Unnamed',
+      session: this.session,
+    });
+    this._writeRoster(rows);
+  }
+
+  async listProfiles() {
+    this._rememberCurrent();
+    const roster = this._readRoster();
+    // Never show a profile with no name yet; it is an artefact of a half
+    // finished sign-in, not a person.
+    return roster
+      .filter((r) => r.display_name && r.display_name !== 'Unnamed')
+      .map((r) => ({
+        id: r.id,
+        display_name: r.display_name,
+        party_code: this.partyCode,
+      }));
+  }
+
+  async addProfile(displayName, partyCode) {
+    const nameError = validateName(displayName);
+    if (nameError) throw new Error(nameError);
+    if (!navigator.onLine) {
+      throw new Error('Adding a second taster needs a connection, because it creates a new account. Try again when you have signal.');
+    }
+
+    // Park the person who is currently scoring before minting anyone new.
+    this._rememberCurrent();
+    const previous = this.session;
+
+    try {
+      await this._signInAnonymously();
+      this._taster = null;
+      this._partyIds = [];
+      this._partyMemberIds = [];
+      await this.signIn(displayName, partyCode ?? this.partyCode ?? null);
+    } catch (err) {
+      // A half-created profile would strand the first person, so put the
+      // session that was working back exactly as it was.
+      this.session = previous;
+      this._persist();
+      this._taster = await this._fetchOwnTaster().catch(() => null);
+      await this._loadParties();
+      throw err;
+    }
+
+    this._rememberCurrent();
+    this._scheduleRefresh();
+    return this._taster;
+  }
+
+  async switchProfile(id) {
+    if (id === this.userId) return this._taster;
+
+    this._rememberCurrent();
+    const target = this._readRoster().find((r) => r.id === id);
+    if (!target) throw new Error('That taster is not on this device any more.');
+
+    const previous = this.session;
+    this.session = target.session;
+
+    // A parked session has usually gone stale, since the whole point is that it
+    // sat unused while the other person scored.
+    if (this.session?.expires_at && this.session.expires_at * 1000 < Date.now() + 60_000) {
+      try {
+        await this._refresh();
+      } catch {
+        this.session = previous;
+        this._persist();
+        throw new Error(`${target.display_name}'s sign-in has expired on this device. They will need to start again, or open the invite link on their own phone.`);
+      }
+    }
+
+    this._persist();
+    this._scheduleRefresh();
+    this._taster = await this._fetchOwnTaster();
+    await this._loadParties();
+    // Anything they wrote while offline could not go out under the other
+    // person's token; now it can.
+    this.flushOutbox();
+    return this._taster;
+  }
 
   async signIn(displayName, partyCode) {
     const nameError = validateName(displayName);
@@ -710,9 +844,8 @@ export class SupabaseAdapter {
     // Anything still queued is real work the user did; show it rather than
     // pretending it does not exist until the network returns.
     const queued = this._readOutbox().map((row) => ({
-      ...row, id: `pending-${row.item_key}`, pending: true,
-      taster_id: this.userId,
-      taster_name: this._taster?.display_name ?? 'You',
+      ...row, id: `pending-${row.taster_id}:${row.item_key}`, pending: true,
+      taster_name: row._taster_name ?? this._taster?.display_name ?? 'You',
       stop_id: row.item_key.split(':')[0],
       item_id: row.item_key.split(':').slice(1).join(':'),
       item_type: row.chocolate == null ? 'other' : 'cookie',

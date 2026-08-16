@@ -1,10 +1,10 @@
 /* Setup: identity, party, storage, themes and data export. */
 
-import { el, icon, ICONS, clear, toast } from '../lib/dom.js?v=ad58b25f';
-import { state, emit, shareUrl, mintPartyCode } from '../lib/state.js?v=ad58b25f';
-import { renderThemePicker, currentTheme } from '../themes.js?v=ad58b25f';
-import { requestPersistence } from '../lib/storage.js?v=ad58b25f';
-import { refresh as refreshResults } from './results.js?v=ad58b25f';
+import { el, icon, ICONS, clear, toast } from '../lib/dom.js?v=e60178fd';
+import { state, emit, shareUrl, mintPartyCode } from '../lib/state.js?v=e60178fd';
+import { renderThemePicker, currentTheme } from '../themes.js?v=e60178fd';
+import { requestPersistence } from '../lib/storage.js?v=e60178fd';
+import { refresh as refreshResults } from './results.js?v=e60178fd';
 
 function statusCard() {
   const store = state.store;
@@ -47,10 +47,16 @@ function statusCard() {
  * profile and inherit their scores. That would make the whole point of the
  * site, two people comparing numbers, impossible on the shipped default.
  * So the device keeps a list of tasters and you switch between them.
+ *
+ * This used to be gated to store.mode === 'local'. The live site runs on the
+ * cloud adapter, so the gate meant the feature only existed in the mode nobody
+ * is in — and sharing one phone is the normal case on a date. Both adapters
+ * implement the same three methods now; see the long note in storage.js for
+ * why the cloud version has to juggle sessions to do it.
  */
 async function profileSwitcher() {
   const store = state.store;
-  if (store.mode !== 'local' || !store.listProfiles) return null;
+  if (!store.listProfiles) return null;
 
   const profiles = await store.listProfiles();
   const wrap = el('div', { style: { marginTop: 'var(--sp-4)' } });
@@ -101,6 +107,9 @@ async function addTasterFlow() {
   if (name == null) return;
   try {
     const code = state.taster?.party_code ?? null;
+    // On the cloud adapter this is a sign-up round trip, not an instant local
+    // write, so say something rather than leaving the button looking dead.
+    if (state.store.mode === 'cloud') toast(`Setting ${name.trim()} up…`);
     state.taster = await state.store.addProfile(name, code);
     emit('taster');
     await refreshResults();

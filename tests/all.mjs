@@ -8,6 +8,7 @@ const suites = [
   ['syntax.mjs', ['--experimental-vm-modules']],
   ['imports.mjs', []],
   ['run.mjs', []],
+  ['outbox.mjs', []],
   ['contrast.mjs', []],
 ];
 
