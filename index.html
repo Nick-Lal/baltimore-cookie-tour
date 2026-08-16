@@ -67,7 +67,7 @@
           <div class="map-chrome__row">
             <div class="segmented material" id="map-filter" role="tablist" aria-label="Filter stops">
               <span class="segmented__thumb" aria-hidden="true"></span>
-              <button role="tab" aria-selected="true" data-filter="all">All 14</button>
+              <button role="tab" aria-selected="true" data-filter="all" id="filter-all">All</button>
               <button role="tab" aria-selected="false" data-filter="confirmed">Confirmed</button>
               <button role="tab" aria-selected="false" data-filter="open">Open now</button>
               <button role="tab" aria-selected="false" data-filter="picked">Picked</button>
@@ -85,7 +85,7 @@
           <div id="stop-list-panel">
             <header class="hero-title">
               <h1 class="large-title">Cookie stops</h1>
-              <p class="callout secondary">Fourteen places in Baltimore worth arguing about. Tap one to read it, add it to build a route.</p>
+              <p class="callout secondary" id="stops-intro">Places in Baltimore worth arguing about. Tap one to read it, add it to build a route.</p>
             </header>
             <div id="cluster-list"></div>
             <p class="pad footnote tertiary" style="margin:var(--sp-6) 0 var(--sp-4)">

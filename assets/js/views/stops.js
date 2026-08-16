@@ -148,7 +148,7 @@ function openBadge(stop) {
     unknown: ['dot-unk', 'Hours unknown'],
   };
   const [cls, label] = map[status];
-  return el('span', { class: `badge ${cls === 'dot-unk' ? '' : ''}`.trim() }, [
+  return el('span', { class: 'badge' }, [
     el('span', { class: `badge__dot ${cls}` }),
     el('span', { text: label }),
   ]);
@@ -347,6 +347,19 @@ export function hideDetail() {
 /* ------------------------------------------------------------------ setup */
 
 export function initStopsView() {
+  // Counts come from the data, so editing stops.json can never leave the
+  // interface claiming a number that is no longer true.
+  const total = state.stops.length;
+  const allTab = document.getElementById('filter-all');
+  if (allTab) allTab.textContent = `All ${total}`;
+  const intro = document.getElementById('stops-intro');
+  if (intro) {
+    const confirmed = state.stops.filter((s) => s.confidence === 'confirmed').length;
+    intro.textContent =
+      `${total} places in Baltimore worth arguing about, ${confirmed} of them with a chocolate ` +
+      `chip cookie confirmed on the shop's own menu. Tap one to read it, add it to build a route.`;
+  }
+
   wireSegmented(document.getElementById('map-filter'), ({ filter }) => {
     state.filter = filter;
     renderStopList();
