@@ -434,3 +434,35 @@ body.is-offline .tabbar::before {
   .tabbar button { font-size: 10px; }
   .tabbar button svg { width: 22px; height: 22px; }
 }
+
+/* --------------------------------------------------------------- chips --- */
+/* Ten tap targets instead of a slider: a 6px track is the wrong control for a
+   thumb, outdoors, holding a cookie. */
+.chips {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 4px;
+  margin-top: var(--sp-3);
+}
+.chip {
+  min-height: 44px;
+  border-radius: var(--radius-xs);
+  border: 1.5px solid var(--separator);
+  background: var(--bg-elevated);
+  color: var(--label-2);
+  font-size: var(--t-subhead);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  transition: background-color 120ms var(--ease), border-color 120ms var(--ease),
+    color 120ms var(--ease), transform 120ms var(--ease);
+}
+.chip:active { transform: scale(0.92); }
+.chip[aria-checked="true"] {
+  background: var(--tint);
+  border-color: var(--tint);
+  color: var(--tint-ink);
+}
+@media (max-width: 360px) {
+  .chip { font-size: var(--t-footnote); }
+  .chips { gap: 3px; }
+}

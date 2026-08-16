@@ -155,9 +155,41 @@ export function readHash() {
   return true;
 }
 
-export function shareUrl() {
+/*
+ * The party used to be a secret you said out loud and both typed identically.
+ * That is the wrong shape: the app already has a share link, and a link can
+ * carry a capability. So the code rides along in the URL, and opening the link
+ * joins you. No schema change was needed for this: join_party already accepts
+ * any string and creates the party if it does not exist.
+ */
+export function shareUrl(partyCode = null) {
   const idx = state.picked
     .map((id) => state.stops.findIndex((s) => s.id === id))
     .filter((i) => i >= 0);
-  return `${location.origin}${location.pathname}${idx.length ? `#r=${idx.join('.')}` : ''}`;
+  const parts = [];
+  if (idx.length) parts.push(`r=${idx.join('.')}`);
+  if (partyCode) parts.push(`p=${encodeURIComponent(partyCode)}`);
+  return `${location.origin}${location.pathname}${parts.length ? '#' + parts.join('&') : ''}`;
+}
+
+/** A party code from a shared link, if there is one. */
+export function readPartyFromHash() {
+  const m = /[#&]p=([^&]+)/.exec(location.hash);
+  if (!m) return null;
+  try {
+    const code = decodeURIComponent(m[1]).trim().toLowerCase();
+    return /^[a-z0-9-]{6,40}$/.test(code) ? code : null;
+  } catch { return null; }
+}
+
+/* Readable, not clever: two words and a number is easier to read aloud if the
+   link fails than a base64 blob, and still has enough entropy that nobody
+   guesses it. */
+const WORDS = ['cookie', 'butter', 'walnut', 'maldon', 'crumb', 'ganache', 'toffee',
+  'praline', 'batch', 'skillet', 'chip', 'dough', 'brulee', 'harbor', 'canton'];
+
+export function mintPartyCode() {
+  const pick = () => WORDS[crypto.getRandomValues(new Uint32Array(1))[0] % WORDS.length];
+  const n = crypto.getRandomValues(new Uint32Array(1))[0] % 900 + 100;
+  return `${pick()}-${pick()}-${n}`;
 }

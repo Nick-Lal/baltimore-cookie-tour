@@ -1,9 +1,9 @@
 /* Scoring: pick a stop, pick an item, score it against the anchored rubric. */
 
-import { el, icon, ICONS, clear, toast, money } from '../lib/dom.js?v=5f1ed2f5';
-import { state, subscribe, emit, stopById } from '../lib/state.js?v=5f1ed2f5';
-import { totalScore, recipeScore, requestPersistence } from '../lib/storage.js?v=5f1ed2f5';
-import { CLUSTER_COLOURS } from './stops.js?v=5f1ed2f5';
+import { el, icon, ICONS, clear, toast, money } from '../lib/dom.js?v=ad58b25f';
+import { state, subscribe, emit, stopById } from '../lib/state.js?v=ad58b25f';
+import { totalScore, recipeScore, requestPersistence } from '../lib/storage.js?v=ad58b25f';
+import { CLUSTER_COLOURS } from './stops.js?v=ad58b25f';
 
 let draft = null;
 
@@ -99,8 +99,13 @@ function renderForm(host, stop, item) {
       (r) => r.taster_id === state.taster?.id && r.stop_id === stop.id && r.item_id === item.id);
     draft = {
       key: `${stop.id}:${item.id}`,
-      scores: Object.fromEntries(factors.map((f) => [f.id, mine?.[f.id] ?? 5])),
-      pricePaid: mine?.price_paid ?? item.priceUSD ?? '',
+      // Unset, not 5. Every factor starting at a valid midpoint meant a tired
+      // thumb on cookie four could press Save without judging anything and
+      // record a plausible 50.0 that is indistinguishable from real tasting.
+      scores: Object.fromEntries(factors.map((f) => [f.id, mine?.[f.id] ?? null])),
+      // Blank, not the catalogue price: pre-filling it puts a number the user
+      // never checked into the value index.
+      pricePaid: mine?.price_paid ?? '',
       notes: mine?.notes ?? '',
       rescoring: Boolean(mine),
     };
@@ -120,35 +125,53 @@ function renderForm(host, stop, item) {
   }
 
   for (const factor of factors) {
-    const valueNode = el('span', { class: 'score-row__val', text: String(draft.scores[factor.id]) });
-    const anchorNode = el('p', { class: 'score-row__anchor', text: anchorText(factor, draft.scores[factor.id]) });
-    const inputId = `f-${factor.id}`;
-
-    const input = el('input', {
-      type: 'range', min: '1', max: '10', step: '1',
-      id: inputId,
-      value: String(draft.scores[factor.id]),
-      'aria-describedby': `${inputId}-anchor`,
-      style: { '--pct': `${((draft.scores[factor.id] - 1) / 9) * 100}%` },
-      oninput: (e) => {
-        const v = Number(e.target.value);
-        draft.scores[factor.id] = v;
-        valueNode.textContent = String(v);
-        anchorNode.textContent = anchorText(factor, v);
-        e.target.style.setProperty('--pct', `${((v - 1) / 9) * 100}%`);
-        updateTotal();
-      },
+    const current = draft.scores[factor.id];
+    const valueNode = el('span', {
+      class: 'score-row__val',
+      text: current == null ? '–' : String(current),
+      style: current == null ? { color: 'var(--label-4)' } : {},
     });
-    anchorNode.id = `${inputId}-anchor`;
+    const anchorNode = el('p', {
+      class: 'score-row__anchor',
+      id: `f-${factor.id}-anchor`,
+      text: current == null ? factor.prompt : anchorText(factor, current),
+    });
+
+    /* Ten chips rather than a slider. Dragging a 6px track precisely, one
+       handed, holding a cookie, is the wrong ask; a chip is a 44pt tap. It
+       also lets "not answered yet" be a real state, which a slider cannot
+       represent because it always has a value. */
+    const chips = el('div', {
+      class: 'chips', role: 'radiogroup',
+      'aria-label': `${factor.name}, 1 to 10`,
+      'aria-describedby': `f-${factor.id}-anchor`,
+    });
+
+    for (let v = 1; v <= 10; v++) {
+      chips.append(el('button', {
+        class: 'chip', type: 'button', role: 'radio',
+        'aria-checked': String(current === v),
+        'aria-label': `${factor.name} ${v} of 10`,
+        onclick: () => {
+          draft.scores[factor.id] = v;
+          valueNode.textContent = String(v);
+          valueNode.style.color = '';
+          anchorNode.textContent = anchorText(factor, v);
+          chips.querySelectorAll('.chip').forEach((c, i) =>
+            c.setAttribute('aria-checked', String(i + 1 === v)));
+          updateTotal();
+        },
+      }, String(v)));
+    }
 
     host.append(el('div', { class: 'card factor-card' }, [
       el('div', { class: 'score-row' }, [
         el('div', { class: 'score-row__head' }, [
-          el('label', { class: 'headline', for: inputId, text: factor.name }),
+          el('span', { class: 'headline', text: factor.name }),
           valueNode,
         ]),
         el('p', { class: 'footnote tertiary', style: { marginTop: '2px' }, text: factor.short }),
-        input,
+        chips,
         anchorNode,
       ]),
     ]));
@@ -160,6 +183,7 @@ function renderForm(host, stop, item) {
       el('input', {
         class: 'field', id: 'price-paid', type: 'number', min: '0', max: '200', step: '0.25',
         inputmode: 'decimal', value: String(draft.pricePaid ?? ''),
+        placeholder: item.priceUSD ? `usually ${money(item.priceUSD)}` : 'optional',
         oninput: (e) => { draft.pricePaid = e.target.value; },
       }),
       el('p', { class: 'footnote secondary', style: { marginTop: 'var(--sp-1)' },
@@ -181,41 +205,58 @@ function renderForm(host, stop, item) {
   const totalNode = el('div', { class: 'running-total__val' });
   const labelNode = el('div', { class: 'running-total__lab' });
 
+  const saveBtn = el('button', { class: 'btn btn--filled', type: 'button' },
+    draft.rescoring ? 'Save new score' : 'Save score');
+
   function updateTotal() {
+    const unanswered = factors.filter((f) => draft.scores[f.id] == null);
+    if (unanswered.length) {
+      totalNode.textContent = '–';
+      totalNode.style.color = 'var(--label-4)';
+      labelNode.textContent = unanswered.length === 1
+        ? `${unanswered[0].name.toLowerCase()} still to go`
+        : `${unanswered.length} factors still to go`;
+      saveBtn.disabled = true;
+      return;
+    }
     const t = totalScore(draft.scores, item.type);
     const r = recipeScore(draft.scores, item.type);
     totalNode.textContent = t.toFixed(1);
+    totalNode.style.color = '';
     labelNode.textContent = `out of 100 · recipe score ${r.toFixed(1)}`;
+    saveBtn.disabled = false;
   }
+
+  saveBtn.addEventListener('click', async (e) => {
+    const btn = e.currentTarget;
+    btn.disabled = true;
+    try {
+      const saved = await state.store.saveRating({
+        stopId: stop.id,
+        itemId: item.id,
+        itemType: item.type,
+        scores: draft.scores,
+        pricePaid: draft.pricePaid,
+        notes: draft.notes,
+      });
+      requestPersistence();
+      draft = null;
+      state.scoring = null;
+      toast(saved?.pending
+        ? `Saved ${item.name} on this phone. It will sync when you have signal.`
+        : `Scored ${item.name}.`);
+      emit('rated');
+    } catch (err) {
+      toast(err.message);
+      btn.disabled = false;
+    }
+  });
+
   updateTotal();
 
   host.append(el('div', { class: 'running-total material' }, [
     el('div', {}, [totalNode, labelNode]),
-    el('button', {
-      class: 'btn btn--filled', type: 'button',
-      onclick: async (e) => {
-        const btn = e.currentTarget;
-        btn.disabled = true;
-        try {
-          await state.store.saveRating({
-            stopId: stop.id,
-            itemId: item.id,
-            itemType: item.type,
-            scores: draft.scores,
-            pricePaid: draft.pricePaid,
-            notes: draft.notes,
-          });
-          requestPersistence();
-          draft = null;
-          state.scoring = null;
-          toast(`Scored ${item.name}.`);
-          emit('rated');
-        } catch (err) {
-          toast(err.message);
-          btn.disabled = false;
-        }
-      },
-    }, draft.rescoring ? 'Save new score' : 'Save score'),
+    saveBtn,
   ]));
 
   host.append(el('div', { class: 'pad', style: { padding: 'var(--sp-4) var(--margin) var(--sp-10)' } },

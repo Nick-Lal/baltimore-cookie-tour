@@ -17,9 +17,9 @@
 <meta name="apple-mobile-web-app-title" content="Cookie Tour">
 <meta name="format-detection" content="telephone=no">
 <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
-<link rel="stylesheet" href="assets/css/themes.css?v=5f1ed2f5">
-<link rel="stylesheet" href="assets/css/app.css?v=5f1ed2f5">
-<link rel="stylesheet" href="assets/css/views.css?v=5f1ed2f5">
+<link rel="stylesheet" href="assets/css/themes.css?v=ad58b25f">
+<link rel="stylesheet" href="assets/css/app.css?v=ad58b25f">
+<link rel="stylesheet" href="assets/css/views.css?v=ad58b25f">
 
 <script>
   /* Set the theme before first paint so there is no flash of the wrong one. */
@@ -204,21 +204,15 @@
               <input class="field" id="display-name" name="displayName" type="text" maxlength="40"
                      autocomplete="nickname" placeholder="Whatever your date calls you" required>
             </div>
-            <div>
-              <label class="form-label" for="party-code">Party code (optional)</label>
-              <input class="field" id="party-code" name="partyCode" type="text" maxlength="40"
-                     autocomplete="off" spellcheck="false" placeholder="e.g. saturday-crawl"
-                     pattern="[A-Za-z0-9\-]{6,40}">
-              <p class="footnote secondary" style="margin-top:var(--sp-2)">
-                Both of you enter the same code and the results page can filter to just your two
-                sets of scores. It filters the view, it does not hide anything: every score and note
-                on this site is public. Six to forty characters: letters, numbers and hyphens.
-              </p>
-            </div>
             <button class="btn btn--filled btn--full" type="submit">Save</button>
             <p class="footnote" id="identity-status" role="status" aria-live="polite"></p>
           </form>
           <div id="profile-switcher"></div>
+        </div>
+
+        <h2 class="section-header">Your party</h2>
+        <div class="pad">
+          <div class="card card__pad" id="party-card"></div>
         </div>
 
         <h2 class="section-header">Where your scores live</h2>
@@ -293,6 +287,6 @@
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script src="vendor/leaflet/leaflet.js"></script>
-<script type="module" src="assets/js/app.js?v=5f1ed2f5"></script>
+<script type="module" src="assets/js/app.js?v=ad58b25f"></script>
 </body>
 </html>

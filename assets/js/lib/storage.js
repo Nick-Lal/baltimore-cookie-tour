@@ -17,6 +17,13 @@
 
 export const RUBRIC_VERSION = '2.0.0';
 
+/* navigator.onLine is not a reliable signal: a phone with one bar, a captive
+   portal, or a stalled cell handoff all report online while every fetch fails.
+   Treat the shape of the error as the truth. */
+export function isNetworkError(err) {
+  return !navigator.onLine || /failed to fetch|networkerror|network request|load failed|timeout|aborted/i.test(String(err && err.message));
+}
+
 export const FACTORS = {
   cookie: ['chocolate', 'texture', 'dough', 'salt', 'structure', 'freshness'],
   other: ['dough', 'texture', 'structure', 'freshness'],
@@ -33,6 +40,8 @@ const KEYS = {
   activeProfile: `${NS}.activeProfile`,
   events: `${NS}.events`,
   session: `${NS}.session`,
+  outbox: `${NS}.outbox`,
+  party: `${NS}.party`,
 };
 
 export const itemKey = (stopId, itemId) => `${stopId}:${itemId}`;
@@ -350,9 +359,72 @@ export class SupabaseAdapter {
     if (!this.session) await this._signInAnonymously();
     this._scheduleRefresh();
 
-    this._taster = await this._fetchOwnTaster();
-    if (this._taster) await this._loadParties();
+    try {
+      this._taster = await this._fetchOwnTaster();
+      if (this._taster) await this._loadParties();
+    } catch (err) {
+      // Reachable but not answering. Stay on this adapter rather than falling
+      // back: see the note on createStore about forking a user's data.
+      console.warn('Cloud reachable but profile load failed:', err.message);
+      this.degraded = 'Could not load your profile. Scores you add now are queued.';
+    }
+
+    this.flushOutbox();
+    window.addEventListener('online', () => this.flushOutbox());
     return this;
+  }
+
+  /* ------------------------------------------------------------- outbox --
+   * Saving a score outdoors on one bar is the whole point of the app, and a
+   * failed fetch used to lose it: the toast said "Failed to fetch" and the
+   * cookie was already eaten. Queued writes survive a reload and flush when
+   * the network comes back.
+   */
+
+  _readOutbox() {
+    try { return JSON.parse(localStorage.getItem(KEYS.outbox) || '[]'); }
+    catch { return []; }
+  }
+
+  _writeOutbox(rows) {
+    try { localStorage.setItem(KEYS.outbox, JSON.stringify(rows)); } catch { /* full */ }
+  }
+
+  get pending() { return this._readOutbox().length; }
+
+  _queue(row) {
+    const rows = this._readOutbox();
+    rows.push({ ...row, _queued_at: new Date().toISOString() });
+    this._writeOutbox(rows);
+  }
+
+  async flushOutbox() {
+    if (this._flushing) return 0;
+    const rows = this._readOutbox();
+    if (!rows.length || !navigator.onLine) return 0;
+
+    this._flushing = true;
+    const left = [];
+    let sent = 0;
+    try {
+      for (const row of rows) {
+        const { _queued_at, ...body } = row;
+        try {
+          await this._rest('rating_events', { method: 'POST', body });
+          sent++;
+        } catch (err) {
+          // A rejection the server will never accept (a bad score, a stale
+          // item) must not block the queue forever. Only keep network errors.
+          if (isNetworkError(err)) left.push(row);
+          else console.warn('Dropping an unsendable queued score:', err.message);
+        }
+      }
+    } finally {
+      this._writeOutbox(left);
+      this._flushing = false;
+    }
+    if (sent) document.dispatchEvent(new CustomEvent('outboxflushed', { detail: { sent } }));
+    return sent;
   }
 
   _persist() {
@@ -393,12 +465,25 @@ export class SupabaseAdapter {
     }, ms);
   }
 
-  async _rest(path, { method = 'GET', body, prefer } = {}) {
+  async _rest(path, { method = 'GET', body, prefer, retried = false } = {}) {
     const headers = { ...this._headers };
     if (prefer) headers.Prefer = prefer;
     const res = await fetch(`${this.url}/rest/v1/${path}`, {
       method, headers, body: body ? JSON.stringify(body) : undefined,
     });
+
+    // An access token lasts an hour. A phone in a pocket between cookie stops
+    // sails past that, and the scheduled refresh does not fire while the tab is
+    // suspended, so the first request after waking is a 401. Refresh once and
+    // retry rather than surfacing it as a failed save.
+    if (res.status === 401 && !retried) {
+      try {
+        await this._refresh();
+        this._scheduleRefresh();
+        return this._rest(path, { method, body, prefer, retried: true });
+      } catch { /* fall through to the normal error path */ }
+    }
+
     if (!res.ok) {
       const text = await res.text();
       let msg = text.slice(0, 200);
@@ -534,11 +619,35 @@ export class SupabaseAdapter {
       try { msg = JSON.parse(text).message ?? msg; } catch { /* keep raw */ }
       throw new Error(msg);
     }
+    try { localStorage.setItem(KEYS.party, String(code).trim().toLowerCase()); } catch { /* ignore */ }
     await this._loadParties();
     return true;
   }
 
   get inParty() { return this._partyIds.length > 0; }
+  get partyCode() {
+    try { return localStorage.getItem(KEYS.party) || null; } catch { return null; }
+  }
+  get partySize() { return this._partyMemberIds.length; }
+
+  /* Membership was loaded once at boot. If your date joins after your session
+     started, which is the normal order, their scores never appeared until you
+     fully reloaded. Cheap to re-check, so re-check. */
+  async refreshParties() {
+    if (!this._taster || !navigator.onLine) return;
+    await this._loadParties();
+  }
+
+  async leaveParty() {
+    for (const id of [...this._partyIds]) {
+      await fetch(`${this.url}/rest/v1/rpc/leave_party`, {
+        method: 'POST', headers: this._headers, body: JSON.stringify({ p_party: id }),
+      }).catch(() => {});
+    }
+    try { localStorage.removeItem(KEYS.party); } catch { /* ignore */ }
+    await this._loadParties();
+    return true;
+  }
 
   async saveRating(input) {
     if (!this._taster) throw new Error('Add your name before scoring.');
@@ -549,20 +658,35 @@ export class SupabaseAdapter {
     const scores = {};
     for (const f of FACTORS[type]) scores[f] = Number(input.scores[f]);
 
-    const saved = await this._rest('rating_events', {
-      method: 'POST',
-      body: {
-        taster_id: this.userId,
-        item_key: itemKey(input.stopId, input.itemId),
-        ...scores,
-        price_paid: input.pricePaid === '' || input.pricePaid == null ? null : Number(input.pricePaid),
-        notes: input.notes ? String(input.notes).slice(0, 500) : null,
-        visited_on: input.visitedOn ?? new Date().toISOString().slice(0, 10),
-        rubric_version: RUBRIC_VERSION,
-      },
-      prefer: 'return=representation',
-    });
-    return Array.isArray(saved) ? saved[0] : saved;
+    const body = {
+      taster_id: this.userId,
+      item_key: itemKey(input.stopId, input.itemId),
+      ...scores,
+      price_paid: input.pricePaid === '' || input.pricePaid == null ? null : Number(input.pricePaid),
+      notes: input.notes ? String(input.notes).slice(0, 500) : null,
+      visited_on: input.visitedOn ?? new Date().toISOString().slice(0, 10),
+      rubric_version: RUBRIC_VERSION,
+    };
+
+    try {
+      const saved = await this._rest('rating_events', { method: 'POST', body, prefer: 'return=representation' });
+      this.flushOutbox();
+      return Array.isArray(saved) ? saved[0] : saved;
+    } catch (err) {
+      // Only queue what failed for network reasons. A constraint violation is
+      // a real rejection and the user needs to see it now, not in an hour.
+      if (isNetworkError(err)) {
+        this._queue(body);
+        return {
+          ...body, id: `pending-${Date.now()}`, pending: true,
+          taster_name: this._taster?.display_name ?? 'You',
+          stop_id: input.stopId, item_id: input.itemId, item_type: type,
+          total_score: totalScore(scores, type), recipe_score: recipeScore(scores, type),
+          created_at: new Date().toISOString(),
+        };
+      }
+      throw err;
+    }
   }
 
   _scopeQuery(scope) {
@@ -575,12 +699,38 @@ export class SupabaseAdapter {
   }
 
   async listRatings({ scope = 'all' } = {}) {
-    return (await this._rest(`rating_feed?select=*${this._scopeQuery(scope)}`)) ?? [];
+    let rows = [];
+    try {
+      rows = (await this._rest(`rating_feed?select=*${this._scopeQuery(scope)}`)) ?? [];
+    } catch (err) {
+      // A dead spot must not blank the results screen.
+      if (isNetworkError(err)) rows = [];
+      else throw err;
+    }
+    // Anything still queued is real work the user did; show it rather than
+    // pretending it does not exist until the network returns.
+    const queued = this._readOutbox().map((row) => ({
+      ...row, id: `pending-${row.item_key}`, pending: true,
+      taster_id: this.userId,
+      taster_name: this._taster?.display_name ?? 'You',
+      stop_id: row.item_key.split(':')[0],
+      item_id: row.item_key.split(':').slice(1).join(':'),
+      item_type: row.chocolate == null ? 'other' : 'cookie',
+      created_at: row._queued_at,
+    }));
+    return rows.concat(queued);
   }
 
   async listHistory({ scope = 'all' } = {}) {
-    return (await this._rest(
-      `rating_history?select=*&order=created_at.asc${this._scopeQuery(scope)}`)) ?? [];
+    try {
+      // Bounded: this is re-fetched on every poll and only ever drives a
+      // running-average line, so the whole history is never needed.
+      return (await this._rest(
+        `rating_history?select=*&order=created_at.asc&limit=500${this._scopeQuery(scope)}`)) ?? [];
+    } catch (err) {
+      if (isNetworkError(err)) return [];
+      throw err;
+    }
   }
 
   async exportAll() {
@@ -621,10 +771,25 @@ export async function createStore() {
     try {
       return await new SupabaseAdapter(config).init();
     } catch (err) {
-      // Falling back silently is how a broken database looks identical to a
-      // working one. The commonest cause is CAPTCHA being switched on for
-      // anonymous sign-ins, which this client cannot satisfy, so name it.
-      console.error('Cloud storage unavailable, falling back to this device.', err);
+      const offline = isNetworkError(err);
+      if (offline) {
+        // Do NOT fall back to the device here. The service worker serves the
+        // cached config offline, so this branch is reached on any offline
+        // reload; falling back would start writing to a separate local store
+        // that the Postgres copy can never merge with, silently forking the
+        // user's data in two. Stay on the cloud adapter with no session: reads
+        // come back empty, writes queue, and everything reconciles on flush.
+        console.warn('Offline at boot; staying on the cloud adapter and queueing writes.', err);
+        const stub = new SupabaseAdapter(config);
+        try { stub.session = JSON.parse(localStorage.getItem(KEYS.session) || 'null'); }
+        catch { stub.session = null; }
+        stub._taster = null;
+        stub.degraded = 'Offline. Scores you add now are saved on this device and sent when you are back.';
+        stub.flushOutbox();
+        window.addEventListener('online', () => stub.flushOutbox());
+        return stub;
+      }
+      console.error('Cloud storage misconfigured, falling back to this device.', err);
       const local = await new LocalAdapter().init();
       local.degraded = /captcha/i.test(err.message)
         ? 'The database rejected sign-in because CAPTCHA is enabled for anonymous sign-ins. This client cannot send a CAPTCHA token, so turn it off in Authentication, Attack Protection.'

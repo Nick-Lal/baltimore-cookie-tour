@@ -1,15 +1,15 @@
 /* Boot: load data, wire the shell, hand off to the views. */
 
-import { initTheme, applyTheme } from './themes.js?v=5f1ed2f5';
-import { toast } from './lib/dom.js?v=5f1ed2f5';
-import { state, emit, subscribe, readHash, restorePicks } from './lib/state.js?v=5f1ed2f5';
-import { createStore } from './lib/storage.js?v=5f1ed2f5';
-import { loadMatrix } from './lib/routing.js?v=5f1ed2f5';
-import { initMap, initStopsView, renderStopList, renderMarkers, hideDetail, fitToStops, renderPicker, initPickerView } from './views/stops.js?v=5f1ed2f5';
-import { initRouteView, rebuildRoute, render as renderRoute } from './views/route.js?v=5f1ed2f5';
-import { initScoreView, render as renderScore } from './views/score.js?v=5f1ed2f5';
-import { initResultsView, refresh as refreshResults } from './views/results.js?v=5f1ed2f5';
-import { initSettingsView, render as renderSettings } from './views/settings.js?v=5f1ed2f5';
+import { initTheme, applyTheme } from './themes.js?v=ad58b25f';
+import { toast } from './lib/dom.js?v=ad58b25f';
+import { state, emit, subscribe, readHash, restorePicks, readPartyFromHash } from './lib/state.js?v=ad58b25f';
+import { createStore } from './lib/storage.js?v=ad58b25f';
+import { loadMatrix } from './lib/routing.js?v=ad58b25f';
+import { initMap, initStopsView, renderStopList, renderMarkers, hideDetail, fitToStops, renderPicker, initPickerView } from './views/stops.js?v=ad58b25f';
+import { initRouteView, rebuildRoute, render as renderRoute } from './views/route.js?v=ad58b25f';
+import { initScoreView, render as renderScore } from './views/score.js?v=ad58b25f';
+import { initResultsView, refresh as refreshResults } from './views/results.js?v=ad58b25f';
+import { initSettingsView, render as renderSettings } from './views/settings.js?v=ad58b25f';
 
 initTheme();
 
@@ -288,16 +288,39 @@ async function boot() {
   const shared = readHash();
   if (!shared) restorePicks();
 
+  // An invite link carries the party. Joining is the whole point of opening it,
+  // so do it before the first results read rather than making them find a
+  // settings screen and type a code.
+  const invited = readPartyFromHash();
+  let joined = false;
+  if (invited && state.store.mode === 'cloud' && state.store.partyCode !== invited) {
+    try {
+      if (!state.taster) {
+        // join_party needs a taster row to attach to; name it once they save.
+        await state.store.signIn('Guest', null);
+        state.taster = await state.store.getTaster();
+      }
+      await state.store.joinParty(invited);
+      joined = true;
+    } catch (err) {
+      console.warn('Could not join the party from the link:', err.message);
+    }
+  }
+
   // Always announce the selection, shared or restored. Without this the route
   // only ever built after you changed a pick, so a restored route sat on
   // "Working it out" forever.
   emit('picked');
   await rebuildRoute();
 
-  if (shared) {
-    show('route');
-    toast('Opened a shared route.');
-  }
+  if (shared) show('route');
+
+  // One message, not two: the second toast used to overwrite the first inside
+  // its own animation, so whoever opened an invite never learned they had
+  // joined anything.
+  if (joined && shared) toast('Joined their party and opened the route. Add your name in Setup.');
+  else if (joined) toast('Joined the party. Add your name in Setup so they know who you are.');
+  else if (shared) toast('Opened a shared route.');
 
   await refreshResults();
 

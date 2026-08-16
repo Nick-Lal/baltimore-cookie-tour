@@ -1,10 +1,10 @@
 /* Setup: identity, party, storage, themes and data export. */
 
-import { el, icon, ICONS, clear, toast } from '../lib/dom.js?v=5f1ed2f5';
-import { state, emit } from '../lib/state.js?v=5f1ed2f5';
-import { renderThemePicker, currentTheme } from '../themes.js?v=5f1ed2f5';
-import { requestPersistence } from '../lib/storage.js?v=5f1ed2f5';
-import { refresh as refreshResults } from './results.js?v=5f1ed2f5';
+import { el, icon, ICONS, clear, toast } from '../lib/dom.js?v=ad58b25f';
+import { state, emit, shareUrl, mintPartyCode } from '../lib/state.js?v=ad58b25f';
+import { renderThemePicker, currentTheme } from '../themes.js?v=ad58b25f';
+import { requestPersistence } from '../lib/storage.js?v=ad58b25f';
+import { refresh as refreshResults } from './results.js?v=ad58b25f';
 
 function statusCard() {
   const store = state.store;
@@ -211,6 +211,90 @@ function durabilityCard() {
   ]);
 }
 
+
+/*
+ * The party, as a link.
+ *
+ * Before this, joining meant both people typing an identical 6-to-40 character
+ * string. A typo made a permanent party of one, nothing showed you were in a
+ * party after a reload, and there was no way out. Now: one tap mints a code,
+ * the share button carries it, and opening the link joins you.
+ */
+function partyCard() {
+  const store = state.store;
+  const cloud = store.mode === 'cloud';
+  const code = cloud ? store.partyCode : state.taster?.party_code;
+
+  if (!state.taster) {
+    return el('p', { class: 'footnote secondary', text: 'Add your name above first.' });
+  }
+
+  if (code) {
+    const size = cloud ? store.partySize : null;
+    return el('div', {}, [
+      el('div', { class: 'row', style: { gap: 'var(--sp-2)', marginBottom: 'var(--sp-2)' } }, [
+        el('span', { class: 'badge__dot dot-open' }),
+        el('span', { class: 'headline', text: size > 1 ? `In a party of ${size}` : 'In a party' }),
+      ]),
+      el('p', { class: 'footnote secondary', style: { marginBottom: 'var(--sp-3)' },
+        text: size > 1
+          ? 'Results filtered to "My party" show everyone here.'
+          : 'Nobody else has joined yet. Send them the link below and their scores will appear next to yours.' }),
+      el('div', { class: 'row', style: { gap: 'var(--sp-2)' } }, [
+        el('button', {
+          class: 'btn btn--filled', type: 'button', style: { flex: '1' },
+          onclick: () => shareInvite(code),
+        }, 'Send the invite'),
+        el('button', {
+          class: 'btn btn--grey', type: 'button',
+          onclick: async () => {
+            try {
+              if (cloud) await store.leaveParty();
+              else await store.signIn(state.taster.display_name, null);
+              state.taster = await store.getTaster();
+              emit('taster');
+              await refreshResults();
+              render();
+              toast('Left the party.');
+            } catch (err) { toast(err.message); }
+          },
+        }, 'Leave'),
+      ]),
+      el('p', { class: 'footnote tertiary', style: { marginTop: 'var(--sp-2)' },
+        text: `Code: ${code}. You should not need it; the link carries it.` }),
+    ]);
+  }
+
+  return el('div', {}, [
+    el('p', { class: 'footnote secondary', style: { marginBottom: 'var(--sp-3)' }, text:
+      'A party puts both your scores on one leaderboard. Start one and send the ' +
+      'link; whoever opens it joins automatically.' }),
+    el('button', {
+      class: 'btn btn--filled btn--full', type: 'button',
+      onclick: async () => {
+        const fresh = mintPartyCode();
+        try {
+          if (cloud) await state.store.joinParty(fresh);
+          else await state.store.signIn(state.taster.display_name, fresh);
+          state.taster = await state.store.getTaster();
+          emit('taster');
+          await refreshResults();
+          render();
+          shareInvite(fresh);
+        } catch (err) { toast(err.message); }
+      },
+    }, 'Start a party and get the link'),
+  ]);
+}
+
+async function shareInvite(code) {
+  const url = shareUrl(code);
+  try {
+    if (navigator.share) await navigator.share({ title: 'Our cookie tour', url });
+    else { await navigator.clipboard.writeText(url); toast('Invite link copied.'); }
+  } catch { /* dismissed */ }
+}
+
 /* ----------------------------------------------------------------- render */
 
 export function render() {
@@ -218,9 +302,10 @@ export function render() {
   if (host) { clear(host); host.append(statusCard()); }
 
   const nameInput = document.getElementById('display-name');
-  const codeInput = document.getElementById('party-code');
   if (nameInput && state.taster) nameInput.value = state.taster.display_name ?? '';
-  if (codeInput && state.taster?.party_code) codeInput.value = state.taster.party_code;
+
+  const party = document.getElementById('party-card');
+  if (party) { clear(party); party.append(partyCard()); }
 
   const durability = document.getElementById('identity-durability');
   if (durability) { clear(durability); durability.append(durabilityCard()); }
@@ -244,14 +329,14 @@ export function initSettingsView() {
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const name = document.getElementById('display-name').value;
-    const code = document.getElementById('party-code').value;
     status.textContent = 'Saving…';
     try {
-      state.taster = await state.store.signIn(name, code || null);
+      // The party is handled by its own card now, as a link rather than a
+      // typed secret, so signing in must not clear an existing membership.
+      const keep = state.store.mode === 'cloud' ? null : state.taster?.party_code ?? null;
+      state.taster = await state.store.signIn(name, keep);
       requestPersistence();
-      status.textContent = code
-        ? `Saved. You are in party "${code.trim().toLowerCase()}".`
-        : 'Saved.';
+      status.textContent = 'Saved.';
       emit('taster');
       await refreshResults();
       render();

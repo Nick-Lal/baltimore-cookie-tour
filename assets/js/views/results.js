@@ -1,8 +1,8 @@
 /* Results: rankings, factor breakdowns, disagreements and movement over time. */
 
-import { el, clear, wireSegmented, toast } from '../lib/dom.js?v=5f1ed2f5';
-import { state, subscribe, stopById } from '../lib/state.js?v=5f1ed2f5';
-import { FACTORS } from '../lib/storage.js?v=5f1ed2f5';
+import { el, clear, wireSegmented, toast } from '../lib/dom.js?v=ad58b25f';
+import { state, subscribe, stopById } from '../lib/state.js?v=ad58b25f';
+import { FACTORS } from '../lib/storage.js?v=ad58b25f';
 
 const mean = (xs) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0);
 
@@ -335,6 +335,15 @@ export function render() {
 
   const ratings = state.ratings;
 
+  const soloParty = state.resultsScope === 'party'
+    && !(state.store?.mode === 'cloud' ? state.store.partyCode : state.taster?.party_code);
+  if (soloParty) {
+    host.append(el('div', { class: 'pad', style: { marginBottom: 'var(--sp-4)' } },
+      el('div', { class: 'notice' }, [
+        el('span', { text: 'No party yet, so this is just your own scores. Start one in Setup and send the link to put both of you on the same board.' }),
+      ])));
+  }
+
   if (!ratings.length) {
     host.append(el('div', { class: 'empty' }, [
       el('h3', { class: 'headline', text: 'Nothing scored yet' }),
@@ -414,9 +423,13 @@ function syncPolling() {
   clearInterval(pollTimer);
   pollTimer = null;
   if (!pollingShouldRun()) return;
-  pollTimer = setInterval(() => {
-    if (pollingShouldRun()) refresh({ quiet: true });
-    else syncPolling();
+  pollTimer = setInterval(async () => {
+    if (!pollingShouldRun()) { syncPolling(); return; }
+    // If your date joined after your session booted, which is the normal
+    // order, membership loaded at boot is already stale and their scores would
+    // never appear until a full reload.
+    await state.store.refreshParties?.();
+    refresh({ quiet: true });
   }, POLL_MS);
 }
 
