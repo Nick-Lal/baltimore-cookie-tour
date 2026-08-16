@@ -1,0 +1,370 @@
+/* ==========================================================================
+   Theme library
+
+   Ten complete themes. Each one sets the full token surface, not just a hue:
+   colour, radius scale, shadow, type family and letterspacing. Switching
+   themes should read as a different designer's work, not a filter.
+
+   Token contract every theme must define:
+     --tint, --tint-ink, --tint-soft
+     --bg, --bg-elevated, --bg-grouped, --bg-sunken
+     --label, --label-2, --label-3, --label-4
+     --fill, --fill-2, --fill-3
+     --separator, --separator-opaque
+     --radius-lg, --radius-md, --radius-sm, --radius-xs
+     --shadow-sheet, --shadow-card
+     --font-display, --font-body
+     --display-tracking, --display-weight
+     --material-tint (colour mixed into translucent chrome)
+     color-scheme
+   ========================================================================== */
+
+:root {
+  --font-system: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  --font-serif-stack: ui-serif, "New York", Georgia, "Iowan Old Style", "Times New Roman", serif;
+  --font-rounded-stack: ui-rounded, "SF Pro Rounded", "Nunito", var(--font-system);
+  --font-mono-stack: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+  --font-cond-stack: "Oswald", "Haettenschweiler", "Arial Narrow", var(--font-system);
+}
+
+/* --------------------------------------------------------------------------
+   1. Bake Sale — the default. Warm cream, chocolate, butter. A bakery counter
+      on a Saturday morning.
+   -------------------------------------------------------------------------- */
+[data-theme="bake-sale"] {
+  color-scheme: light;
+  --tint: #b4541f;
+  --tint-ink: #ffffff;
+  --tint-soft: #f6e3d6;
+  --bg: #fbf6ee;
+  --bg-elevated: #ffffff;
+  --bg-grouped: #f3ebdf;
+  --bg-sunken: #efe5d6;
+  --label: #2e2019;
+  --label-2: #6b564a;
+  --label-3: #7b6c60;
+  --label-4: #978c81;
+  --fill: rgba(120, 88, 64, 0.10);
+  --fill-2: rgba(120, 88, 64, 0.06);
+  --fill-3: rgba(120, 88, 64, 0.035);
+  --separator: rgba(90, 66, 48, 0.16);
+  --separator-opaque: #e2d5c4;
+  --radius-lg: 22px;
+  --radius-md: 14px;
+  --radius-sm: 9px;
+  --radius-xs: 6px;
+  --shadow-sheet: 0 -8px 40px rgba(70, 46, 28, 0.14);
+  --shadow-card: 0 1px 2px rgba(70, 46, 28, 0.06), 0 6px 18px rgba(70, 46, 28, 0.07);
+  --font-display: var(--font-serif-stack);
+  --font-body: var(--font-system);
+  --display-tracking: -0.01em;
+  --display-weight: 700;
+  --material-tint: 251, 246, 238;
+}
+
+/* --------------------------------------------------------------------------
+   2. Charm City — the Baltimore flag. Black and gold, heraldic, high contrast.
+   -------------------------------------------------------------------------- */
+[data-theme="charm-city"] {
+  color-scheme: light;
+  --tint: #8a6a00;
+  --tint-ink: #ffffff;
+  --tint-soft: #f7ecc4;
+  --bg: #fdfbf3;
+  --bg-elevated: #ffffff;
+  --bg-grouped: #f4f0e2;
+  --bg-sunken: #ebe5d1;
+  --label: #14120c;
+  --label-2: #4f4a37;
+  --label-3: #7a735b;
+  --label-4: #98917a;
+  --fill: rgba(20, 18, 12, 0.09);
+  --fill-2: rgba(20, 18, 12, 0.055);
+  --fill-3: rgba(20, 18, 12, 0.03);
+  --separator: rgba(20, 18, 12, 0.18);
+  --separator-opaque: #ddd6bd;
+  --radius-lg: 4px;
+  --radius-md: 3px;
+  --radius-sm: 2px;
+  --radius-xs: 2px;
+  --shadow-sheet: 0 -6px 32px rgba(20, 18, 12, 0.20);
+  --shadow-card: 0 2px 0 rgba(20, 18, 12, 0.10);
+  --font-display: var(--font-cond-stack);
+  --font-body: var(--font-system);
+  --display-tracking: 0.02em;
+  --display-weight: 700;
+  --material-tint: 253, 251, 243;
+}
+
+/* --------------------------------------------------------------------------
+   3. Midnight Batch — dark, warm amber. Insomnia Cookies at 2am.
+   -------------------------------------------------------------------------- */
+[data-theme="midnight-batch"] {
+  color-scheme: dark;
+  --tint: #ffb340;
+  --tint-ink: #241703;
+  --tint-soft: #3d2c12;
+  --bg: #12100e;
+  --bg-elevated: #1d1a17;
+  --bg-grouped: #17140f;
+  --bg-sunken: #0b0a09;
+  --label: #f7f1e8;
+  --label-2: #b8ad9e;
+  --label-3: #8a8276;
+  --label-4: #6c665f;
+  --fill: rgba(255, 220, 170, 0.12);
+  --fill-2: rgba(255, 220, 170, 0.07);
+  --fill-3: rgba(255, 220, 170, 0.04);
+  --separator: rgba(255, 226, 180, 0.16);
+  --separator-opaque: #2e2924;
+  --radius-lg: 20px;
+  --radius-md: 13px;
+  --radius-sm: 8px;
+  --radius-xs: 5px;
+  --shadow-sheet: 0 -8px 44px rgba(0, 0, 0, 0.66);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.5), 0 8px 24px rgba(0, 0, 0, 0.35);
+  --font-display: var(--font-rounded-stack);
+  --font-body: var(--font-system);
+  --display-tracking: -0.02em;
+  --display-weight: 700;
+  --material-tint: 18, 16, 14;
+}
+
+/* --------------------------------------------------------------------------
+   4. Formstone — Baltimore rowhouses. Grey stone, marble steps, brick.
+   -------------------------------------------------------------------------- */
+[data-theme="formstone"] {
+  color-scheme: light;
+  --tint: #9c3b2e;
+  --tint-ink: #ffffff;
+  --tint-soft: #f0dcd8;
+  --bg: #f2f1ee;
+  --bg-elevated: #fbfbfa;
+  --bg-grouped: #e8e7e3;
+  --bg-sunken: #dedcd7;
+  --label: #24262a;
+  --label-2: #5c6067;
+  --label-3: #6b6e73;
+  --label-4: #898b8f;
+  --fill: rgba(40, 44, 50, 0.09);
+  --fill-2: rgba(40, 44, 50, 0.055);
+  --fill-3: rgba(40, 44, 50, 0.03);
+  --separator: rgba(40, 44, 50, 0.15);
+  --separator-opaque: #d5d3ce;
+  --radius-lg: 8px;
+  --radius-md: 6px;
+  --radius-sm: 4px;
+  --radius-xs: 3px;
+  --shadow-sheet: 0 -6px 30px rgba(36, 38, 42, 0.16);
+  --shadow-card: 0 1px 3px rgba(36, 38, 42, 0.10);
+  --font-display: var(--font-system);
+  --font-body: var(--font-system);
+  --display-tracking: -0.015em;
+  --display-weight: 800;
+  --material-tint: 242, 241, 238;
+}
+
+/* --------------------------------------------------------------------------
+   5. Old Bay — Maryland. Paprika orange, crab blue, brown paper.
+   -------------------------------------------------------------------------- */
+[data-theme="old-bay"] {
+  color-scheme: light;
+  --tint: #1f5f8b;
+  --tint-ink: #ffffff;
+  --tint-soft: #d9e8f2;
+  --bg: #fdf4e3;
+  --bg-elevated: #fffaf0;
+  --bg-grouped: #f6e9d2;
+  --bg-sunken: #efdfc2;
+  --label: #33240f;
+  --label-2: #6d5533;
+  --label-3: #836d4b;
+  --label-4: #9d8a6b;
+  --fill: rgba(200, 106, 22, 0.14);
+  --fill-2: rgba(200, 106, 22, 0.08);
+  --fill-3: rgba(200, 106, 22, 0.045);
+  --separator: rgba(120, 82, 34, 0.20);
+  --separator-opaque: #e4d0ae;
+  --radius-lg: 16px;
+  --radius-md: 10px;
+  --radius-sm: 7px;
+  --radius-xs: 4px;
+  --shadow-sheet: 0 -8px 36px rgba(90, 60, 20, 0.18);
+  --shadow-card: 0 1px 2px rgba(90, 60, 20, 0.08), 0 5px 16px rgba(90, 60, 20, 0.08);
+  --font-display: var(--font-cond-stack);
+  --font-body: var(--font-system);
+  --display-tracking: 0.01em;
+  --display-weight: 700;
+  --material-tint: 253, 244, 227;
+}
+
+/* --------------------------------------------------------------------------
+   6. Sourdough — Ovenbird's palette. Flour, crust, Maldon salt.
+   -------------------------------------------------------------------------- */
+[data-theme="sourdough"] {
+  color-scheme: light;
+  --tint: #627565;
+  --tint-ink: #ffffff;
+  --tint-soft: #dfe7e0;
+  --bg: #f7f5f0;
+  --bg-elevated: #ffffff;
+  --bg-grouped: #eeebe3;
+  --bg-sunken: #e5e1d7;
+  --label: #2b2a26;
+  --label-2: #63605a;
+  --label-3: #73706c;
+  --label-4: #908d87;
+  --fill: rgba(60, 58, 52, 0.08);
+  --fill-2: rgba(60, 58, 52, 0.05);
+  --fill-3: rgba(60, 58, 52, 0.028);
+  --separator: rgba(60, 58, 52, 0.14);
+  --separator-opaque: #ddd8cd;
+  --radius-lg: 28px;
+  --radius-md: 18px;
+  --radius-sm: 11px;
+  --radius-xs: 7px;
+  --shadow-sheet: 0 -10px 44px rgba(50, 48, 42, 0.13);
+  --shadow-card: 0 1px 2px rgba(50, 48, 42, 0.05), 0 10px 28px rgba(50, 48, 42, 0.06);
+  --font-display: var(--font-serif-stack);
+  --font-body: var(--font-system);
+  --display-tracking: -0.005em;
+  --display-weight: 600;
+  --material-tint: 247, 245, 240;
+}
+
+/* --------------------------------------------------------------------------
+   7. Neon Diner — deep teal, hot pink, cream. Playful, date night.
+   -------------------------------------------------------------------------- */
+[data-theme="neon-diner"] {
+  color-scheme: dark;
+  --tint: #ff518f;
+  --tint-ink: #24040f;
+  --tint-soft: #46182b;
+  --bg: #0d1f22;
+  --bg-elevated: #143035;
+  --bg-grouped: #102a2e;
+  --bg-sunken: #08181a;
+  --label: #f4f7f2;
+  --label-2: #a9c2c0;
+  --label-3: #7f9895;
+  --label-4: #647a78;
+  --fill: rgba(180, 240, 235, 0.13);
+  --fill-2: rgba(180, 240, 235, 0.075);
+  --fill-3: rgba(180, 240, 235, 0.04);
+  --separator: rgba(180, 240, 235, 0.18);
+  --separator-opaque: #1e4348;
+  --radius-lg: 26px;
+  --radius-md: 999px;
+  --radius-sm: 999px;
+  --radius-xs: 8px;
+  --shadow-sheet: 0 -8px 44px rgba(0, 0, 0, 0.6);
+  --shadow-card: 0 0 0 1px rgba(255, 77, 141, 0.16), 0 8px 26px rgba(0, 0, 0, 0.4);
+  --font-display: var(--font-rounded-stack);
+  --font-body: var(--font-system);
+  --display-tracking: -0.025em;
+  --display-weight: 800;
+  --material-tint: 13, 31, 34;
+}
+
+/* --------------------------------------------------------------------------
+   8. Marble Counter — editorial minimal. White, graphite, one green.
+   -------------------------------------------------------------------------- */
+[data-theme="marble-counter"] {
+  color-scheme: light;
+  --tint: #1a7f5a;
+  --tint-ink: #ffffff;
+  --tint-soft: #ddefe7;
+  --bg: #ffffff;
+  --bg-elevated: #ffffff;
+  --bg-grouped: #f5f5f5;
+  --bg-sunken: #ebebeb;
+  --label: #111111;
+  --label-2: #575757;
+  --label-3: #757575;
+  --label-4: #939393;
+  --fill: rgba(0, 0, 0, 0.07);
+  --fill-2: rgba(0, 0, 0, 0.04);
+  --fill-3: rgba(0, 0, 0, 0.022);
+  --separator: rgba(0, 0, 0, 0.13);
+  --separator-opaque: #e0e0e0;
+  --radius-lg: 2px;
+  --radius-md: 2px;
+  --radius-sm: 1px;
+  --radius-xs: 1px;
+  --shadow-sheet: 0 -4px 24px rgba(0, 0, 0, 0.10);
+  --shadow-card: none;
+  --font-display: var(--font-serif-stack);
+  --font-body: var(--font-system);
+  --display-tracking: -0.02em;
+  --display-weight: 400;
+  --material-tint: 255, 255, 255;
+}
+
+/* --------------------------------------------------------------------------
+   9. Dark Chocolate — cocoa browns, cream text, gold. Rich and quiet.
+   -------------------------------------------------------------------------- */
+[data-theme="dark-chocolate"] {
+  color-scheme: dark;
+  --tint: #d9a441;
+  --tint-ink: #241a08;
+  --tint-soft: #3a2c14;
+  --bg: #1a1210;
+  --bg-elevated: #261b18;
+  --bg-grouped: #1f1613;
+  --bg-sunken: #120c0b;
+  --label: #f2e8dd;
+  --label-2: #bda99a;
+  --label-3: #938273;
+  --label-4: #72665d;
+  --fill: rgba(240, 210, 180, 0.11);
+  --fill-2: rgba(240, 210, 180, 0.065);
+  --fill-3: rgba(240, 210, 180, 0.035);
+  --separator: rgba(240, 210, 180, 0.15);
+  --separator-opaque: #3a2b25;
+  --radius-lg: 18px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+  --radius-xs: 5px;
+  --shadow-sheet: 0 -8px 40px rgba(0, 0, 0, 0.62);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.45), 0 7px 22px rgba(0, 0, 0, 0.32);
+  --font-display: var(--font-serif-stack);
+  --font-body: var(--font-system);
+  --display-tracking: -0.005em;
+  --display-weight: 600;
+  --material-tint: 26, 18, 16;
+}
+
+/* --------------------------------------------------------------------------
+   10. Harbor Fog — cool muted blue grey. Calm, low contrast chrome.
+   -------------------------------------------------------------------------- */
+[data-theme="harbor-fog"] {
+  color-scheme: light;
+  --tint: #3f6d8f;
+  --tint-ink: #ffffff;
+  --tint-soft: #dde8ef;
+  --bg: #eef2f4;
+  --bg-elevated: #f9fbfc;
+  --bg-grouped: #e3e9ec;
+  --bg-sunken: #d8e0e4;
+  --label: #1e2a31;
+  --label-2: #556672;
+  --label-3: #646f77;
+  --label-4: #848d93;
+  --fill: rgba(30, 42, 49, 0.08);
+  --fill-2: rgba(30, 42, 49, 0.05);
+  --fill-3: rgba(30, 42, 49, 0.028);
+  --separator: rgba(30, 42, 49, 0.14);
+  --separator-opaque: #cfd8dd;
+  --radius-lg: 20px;
+  --radius-md: 14px;
+  --radius-sm: 9px;
+  --radius-xs: 6px;
+  --shadow-sheet: 0 -8px 38px rgba(30, 42, 49, 0.14);
+  --shadow-card: 0 1px 2px rgba(30, 42, 49, 0.06), 0 6px 20px rgba(30, 42, 49, 0.07);
+  --font-display: var(--font-system);
+  --font-body: var(--font-system);
+  --display-tracking: -0.022em;
+  --display-weight: 700;
+  --material-tint: 238, 242, 244;
+}

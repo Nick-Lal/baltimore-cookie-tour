@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Baltimore Chocolate Chip Cookie Tour</title>
+<meta name="description" content="Plan a chocolate chip cookie crawl across Baltimore, route it on foot and by scooter, and score every cookie against the same rubric.">
+<meta name="theme-color" content="#fbf6ee">
+<meta name="color-scheme" content="light dark">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8D%AA%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+<link rel="stylesheet" href="assets/css/themes.css">
+<link rel="stylesheet" href="assets/css/app.css">
+<link rel="stylesheet" href="assets/css/views.css">
+
+<script>
+  /* Set the theme before first paint so there is no flash of the wrong one. */
+  (function () {
+    try {
+      var t = localStorage.getItem('cookietour.theme');
+      if (!t) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'midnight-batch' : 'bake-sale';
+      document.documentElement.dataset.theme = t;
+    } catch (e) { document.documentElement.dataset.theme = 'bake-sale'; }
+  })();
+</script>
+</head>
+<body>
+
+<a href="#main" class="skip-link">Skip to content</a>
+
+<div class="app">
+
+  <!-- ============================== tab bar ============================== -->
+  <nav class="tabbar material" role="tablist" aria-label="Sections">
+    <button role="tab" id="tab-map" aria-controls="view-map" aria-selected="true" data-view="map">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3 3 5.5v15L9 18l6 3 6-2.5v-15L15 6 9 3Z"/><path d="M9 3v15M15 6v15"/></svg>
+      <span>Stops</span>
+    </button>
+    <button role="tab" id="tab-route" aria-controls="view-route" aria-selected="false" data-view="route">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="5" r="2.5"/><path d="M8.5 19H15a3.5 3.5 0 0 0 0-7H9a3.5 3.5 0 0 1 0-7h6.5"/></svg>
+      <span>Route</span>
+      <span class="tabbar__count" id="route-count" hidden></span>
+    </button>
+    <button role="tab" id="tab-score" aria-controls="view-score" aria-selected="false" data-view="score">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5 14.6 9l6 .9-4.3 4.2 1 6-5.3-2.8L6.7 20l1-6L3.4 9.9 9.4 9 12 3.5Z"/></svg>
+      <span>Score</span>
+    </button>
+    <button role="tab" id="tab-results" aria-controls="view-results" aria-selected="false" data-view="results">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+      <span>Results</span>
+    </button>
+    <button role="tab" id="tab-settings" aria-controls="view-settings" aria-selected="false" data-view="settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1A1.6 1.6 0 0 0 9 19.4a1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1A1.6 1.6 0 0 0 4.6 9a1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H9a1.6 1.6 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V9a1.6 1.6 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1Z"/></svg>
+      <span>Setup</span>
+    </button>
+  </nav>
+
+  <main id="main" class="main">
+
+    <!-- ============================= MAP VIEW ============================= -->
+    <section id="view-map" class="view is-active" role="tabpanel" aria-labelledby="tab-map">
+      <div class="map-wrap">
+        <div id="map" role="application" aria-label="Map of Baltimore cookie stops"></div>
+
+        <div class="map-chrome">
+          <div class="map-chrome__row">
+            <div class="segmented material" id="map-filter" role="tablist" aria-label="Filter stops">
+              <span class="segmented__thumb" aria-hidden="true"></span>
+              <button role="tab" aria-selected="true" data-filter="all">All 14</button>
+              <button role="tab" aria-selected="false" data-filter="confirmed">Confirmed</button>
+              <button role="tab" aria-selected="false" data-filter="open">Open now</button>
+              <button role="tab" aria-selected="false" data-filter="picked">Picked</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sheet material" id="stop-sheet" data-detent="medium">
+        <div class="sheet__grip" id="sheet-grip" role="slider" tabindex="0"
+             aria-label="Sheet height" aria-valuemin="0" aria-valuemax="2" aria-valuenow="1"
+             aria-valuetext="Half height"></div>
+        <div class="sheet__scroll" id="sheet-scroll">
+
+          <div id="stop-list-panel">
+            <header class="hero-title">
+              <h1 class="large-title">Cookie stops</h1>
+              <p class="callout secondary">Fourteen places in Baltimore worth arguing about. Tap one to read it, add it to build a route.</p>
+            </header>
+            <div id="cluster-list"></div>
+            <p class="pad footnote tertiary" style="margin:var(--sp-6) 0 var(--sp-4)">
+              Researched 16 August 2026. Two bakeries on the original list had already closed, so
+              ring ahead before you build a whole afternoon around one.
+              <a href="docs/research/cookie-spots.md">Read the research notes.</a>
+            </p>
+          </div>
+
+          <div id="stop-detail-panel" hidden></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================ ROUTE VIEW =========================== -->
+    <section id="view-route" class="view" role="tabpanel" aria-labelledby="tab-route" hidden>
+      <header class="navbar material" id="route-navbar">
+        <div class="navbar__row">
+          <div class="navbar__lead"></div>
+          <span class="navbar__compact-title">Route</span>
+          <div class="navbar__trail">
+            <button class="icon-btn" id="share-route" aria-label="Copy a link to this route">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3m0 0L8.5 6.5M12 3l3.5 3.5"/><path d="M4 13v5.5A2.5 2.5 0 0 0 6.5 21h11a2.5 2.5 0 0 0 2.5-2.5V13"/></svg>
+            </button>
+          </div>
+        </div>
+      </header>
+      <div class="view__scroll" id="route-scroll">
+        <header class="hero-title">
+          <h1 class="large-title">Your route</h1>
+          <p class="callout secondary" id="route-sub">Pick some stops and I will work out how to get between them.</p>
+        </header>
+        <div id="route-body"></div>
+      </div>
+    </section>
+
+    <!-- ============================ SCORE VIEW =========================== -->
+    <section id="view-score" class="view" role="tabpanel" aria-labelledby="tab-score" hidden>
+      <header class="navbar material" id="score-navbar">
+        <div class="navbar__row">
+          <div class="navbar__lead">
+            <button class="icon-btn" id="score-back" aria-label="Back" hidden>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+            </button>
+          </div>
+          <span class="navbar__compact-title">Score</span>
+          <div class="navbar__trail"></div>
+        </div>
+      </header>
+      <div class="view__scroll" id="score-scroll">
+        <div id="score-body"></div>
+      </div>
+    </section>
+
+    <!-- =========================== RESULTS VIEW ========================== -->
+    <section id="view-results" class="view" role="tabpanel" aria-labelledby="tab-results" hidden>
+      <header class="navbar material" id="results-navbar">
+        <div class="navbar__row">
+          <div class="navbar__lead"></div>
+          <span class="navbar__compact-title">Results</span>
+          <div class="navbar__trail">
+            <button class="icon-btn" id="export-data" aria-label="Export your scores as a file">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4"/><path d="M4 17v2.5A1.5 1.5 0 0 0 5.5 21h13a1.5 1.5 0 0 0 1.5-1.5V17"/></svg>
+            </button>
+          </div>
+        </div>
+      </header>
+      <div class="view__scroll" id="results-scroll">
+        <header class="hero-title">
+          <h1 class="large-title">Results</h1>
+          <p class="callout secondary" id="results-sub">Rankings, factor by factor breakdowns, and where you two disagree.</p>
+        </header>
+        <div class="pad" style="margin-bottom:var(--sp-4)">
+          <div class="segmented" id="results-filter" role="tablist" aria-label="Whose scores to show">
+            <span class="segmented__thumb" aria-hidden="true"></span>
+            <button role="tab" aria-selected="true" data-scope="party">My party</button>
+            <button role="tab" aria-selected="false" data-scope="mine">Just me</button>
+            <button role="tab" aria-selected="false" data-scope="all">Everyone</button>
+          </div>
+        </div>
+        <div id="results-body"></div>
+      </div>
+    </section>
+
+    <!-- =========================== SETTINGS VIEW ========================= -->
+    <section id="view-settings" class="view" role="tabpanel" aria-labelledby="tab-settings" hidden>
+      <header class="navbar material" id="settings-navbar">
+        <div class="navbar__row">
+          <div class="navbar__lead"></div>
+          <span class="navbar__compact-title">Setup</span>
+          <div class="navbar__trail"></div>
+        </div>
+      </header>
+      <div class="view__scroll" id="settings-scroll">
+        <header class="hero-title">
+          <h1 class="large-title">Setup</h1>
+          <p class="callout secondary">Who you are, where your scores live, and what the site looks like.</p>
+        </header>
+
+        <h2 class="section-header">Who is tasting</h2>
+        <div class="pad">
+          <form id="identity-form" class="card card__pad stack" style="--gap:var(--sp-4)">
+            <div>
+              <label class="form-label" for="display-name">Your name</label>
+              <input class="field" id="display-name" name="displayName" type="text" maxlength="40"
+                     autocomplete="nickname" placeholder="Whatever your date calls you" required>
+            </div>
+            <div>
+              <label class="form-label" for="party-code">Party code (optional)</label>
+              <input class="field" id="party-code" name="partyCode" type="text" maxlength="24"
+                     autocomplete="off" spellcheck="false" placeholder="e.g. saturday-crawl"
+                     pattern="[A-Za-z0-9\-]{3,24}">
+              <p class="footnote secondary" style="margin-top:var(--sp-2)">
+                Both of you enter the same code and the results page can show just your two sets of
+                scores. Lowercase letters, numbers and hyphens.
+              </p>
+            </div>
+            <button class="btn btn--filled btn--full" type="submit">Save</button>
+            <p class="footnote" id="identity-status" role="status" aria-live="polite"></p>
+          </form>
+          <div id="profile-switcher"></div>
+        </div>
+
+        <h2 class="section-header">Where your scores live</h2>
+        <div class="pad">
+          <div class="card card__pad" id="storage-status"></div>
+        </div>
+
+        <h2 class="section-header">Theme</h2>
+        <div class="pad" id="theme-picker"></div>
+
+        <h2 class="section-header">Your data</h2>
+        <div class="pad stack" style="--gap:var(--sp-3)">
+          <button class="btn btn--grey btn--full" id="export-json">Download my scores</button>
+          <button class="btn btn--grey btn--full" id="import-json">Restore from a file</button>
+          <input type="file" id="import-file" accept="application/json" class="sr-only" tabindex="-1">
+          <p class="footnote secondary">
+            iPhones clear website storage after about a week of not visiting a site. If your scores
+            only live on this device, download them before that becomes a problem.
+          </p>
+        </div>
+
+        <h2 class="section-header">About</h2>
+        <div class="pad" style="padding-bottom:var(--sp-12)">
+          <p class="footnote secondary">
+            Routing by <a href="https://valhalla.readthedocs.io/">Valhalla</a> on OpenStreetMap data.
+            Map tiles by <a href="https://carto.com/attributions">CARTO</a>, data
+            <a href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors</a>.
+            Stop research compiled 16 August 2026 and
+            <a href="docs/research/cookie-spots.md">written up here</a>.
+          </p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="vendor/leaflet/leaflet.js"></script>
+<script type="module" src="assets/js/app.js"></script>
+</body>
+</html>

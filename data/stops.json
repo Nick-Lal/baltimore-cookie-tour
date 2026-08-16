@@ -1,0 +1,445 @@
+{
+  "version": "2.0.0",
+  "compiled": "2026-08-16",
+  "geocoder": "OpenStreetMap Nominatim",
+  "timezone": "America/New_York",
+  "hoursConvention": "hours[0] is Sunday through hours[6] is Saturday, matching JavaScript getDay(). null means closed that day. A close time earlier than the open time means it closes after midnight.",
+  "priceNote": "priceUSD is a typical counter price, not a quote. Prices move. The scoring form asks what you actually paid and uses that for the value index.",
+  "priceBands": {
+    "1": "Under $3",
+    "2": "$3 to $6",
+    "3": "Over $6"
+  },
+  "city": { "name": "Baltimore, MD", "lat": 39.2987, "lng": -76.6089 },
+  "clusters": [
+    { "id": "hampden", "label": "Hampden", "blurb": "Chestnut Avenue is the densest cookie block in the city." },
+    { "id": "north-central", "label": "Remington & Charles Village", "blurb": "The Howard Street corridor, plus the only stop open past midnight." },
+    { "id": "central", "label": "Mount Vernon & downtown", "blurb": "Antique Row and the old downtown pastry houses." },
+    { "id": "harbor-east", "label": "Little Italy & Harbor East", "blurb": "Two serious bakeries about 700 metres apart." },
+    { "id": "fells-point", "label": "Fells Point", "blurb": "Waterfront, and the best place on the list to sit down." },
+    { "id": "east", "label": "Canton & Highlandtown", "blurb": "O'Donnell Square and the longest bakery hours here." },
+    { "id": "federal-hill", "label": "Federal Hill", "blurb": "South of the harbour, afternoons only." }
+  ],
+  "stops": [
+    {
+      "id": "ovenbird-rotunda",
+      "name": "Ovenbird Bakery",
+      "branch": "The Rotunda",
+      "cluster": "hampden",
+      "address": "711 W 40th St, Baltimore, MD 21211",
+      "lat": 39.3366597,
+      "lng": -76.6298529,
+      "confidence": "confirmed",
+      "priceBand": 2,
+      "url": "https://ovenbirdbread.com/cookies/",
+      "phone": null,
+      "signature": "Chocolate ChiRp",
+      "blurb": "A sourdough bakery whose cookie became the reason people queue. Belgian milk chocolate is shaved into the dough rather than dropped in as chips, then finished with Maldon salt. You get chocolate in thin sheets through the crumb instead of molten pockets, which is a real technique difference worth scoring.",
+      "hours": [
+        { "open": "08:00", "close": "15:00" },
+        { "open": "08:00", "close": "16:00" },
+        { "open": "08:00", "close": "16:00" },
+        { "open": "08:00", "close": "16:00" },
+        { "open": "08:00", "close": "16:00" },
+        { "open": "08:00", "close": "16:00" },
+        { "open": "08:00", "close": "16:00" }
+      ],
+      "menu": [
+        { "id": "chocolate-chirp", "name": "Chocolate ChiRp Cookie", "type": "cookie", "primary": true, "priceUSD": 4.5, "note": "Shaved Belgian milk chocolate, Maldon salt." },
+        { "id": "morning-bun", "name": "Morning bun", "type": "other", "primary": false, "priceUSD": 5.0, "note": "Laminated, cinnamon sugar. Gone by mid morning." },
+        { "id": "sourdough-loaf", "name": "Country sourdough loaf", "type": "other", "primary": false, "priceUSD": 9.0, "note": "What the bakery is actually built on." }
+      ]
+    },
+    {
+      "id": "harmony-bakery",
+      "name": "Harmony Bakery",
+      "branch": null,
+      "cluster": "hampden",
+      "address": "3446 Chestnut Ave, Baltimore, MD 21211",
+      "lat": 39.3298274,
+      "lng": -76.6295496,
+      "confidence": "confirmed",
+      "priceBand": 2,
+      "url": "https://harmonybakery.net/",
+      "phone": "(410) 235-3870",
+      "signature": "Vegan gluten free chocolate chip",
+      "blurb": "Entirely vegan, gluten free and soy free, with flours blended in house. Whether that helps or hurts a chocolate chip cookie is exactly the question a rubric should be able to settle, which makes Harmony the control case for anyone who thinks they already know the answer.",
+      "hours": [
+        { "open": "10:00", "close": "15:00" },
+        null,
+        null,
+        { "open": "09:00", "close": "14:00" },
+        { "open": "09:00", "close": "16:00" },
+        { "open": "09:00", "close": "16:00" },
+        { "open": "09:00", "close": "16:00" }
+      ],
+      "menu": [
+        { "id": "cc-cookie", "name": "Chocolate chip cookie", "type": "cookie", "primary": true, "priceUSD": 4.0, "note": "Vegan, gluten free, soy free." },
+        { "id": "spinach-pie", "name": "Spinach pie", "type": "other", "primary": false, "priceUSD": 6.0, "note": "Savoury reset between sweet stops." },
+        { "id": "slice-pizza", "name": "Pizza slice", "type": "other", "primary": false, "priceUSD": 6.0, "note": "Makes this a real stop, not a counter visit." }
+      ]
+    },
+    {
+      "id": "common-ground",
+      "name": "Common Ground",
+      "branch": null,
+      "cluster": "hampden",
+      "address": "3543 Chestnut Ave, Baltimore, MD 21211",
+      "lat": 39.3308823,
+      "lng": -76.6290481,
+      "confidence": "confirmed",
+      "priceBand": 1,
+      "url": "https://commongroundhampden.com/menu/",
+      "phone": null,
+      "signature": "Scratch-baked cookies",
+      "blurb": "A worker cooperative cafe that bakes its own cookies, scones and muffins from scratch every morning. Less precious than the pastry shops on this list and cheaper than all of them, which makes it a useful test of whether technique or freshness is doing the work. Closed Wednesdays, which catches people out.",
+      "hours": [
+        { "open": "07:00", "close": "15:00" },
+        { "open": "07:00", "close": "15:00" },
+        { "open": "07:00", "close": "15:00" },
+        null,
+        { "open": "07:00", "close": "15:00" },
+        { "open": "07:00", "close": "15:00" },
+        { "open": "07:00", "close": "15:00" }
+      ],
+      "menu": [
+        { "id": "cc-cookie", "name": "Chocolate chip cookie", "type": "cookie", "primary": true, "priceUSD": 3.25, "note": "Baked in house each morning." },
+        { "id": "muffin", "name": "Muffin", "type": "other", "primary": false, "priceUSD": 3.75, "note": "The other thing they are known for." },
+        { "id": "drip-coffee", "name": "Drip coffee", "type": "other", "primary": false, "priceUSD": 3.0, "note": "Cheapest palate reset in Hampden." }
+      ]
+    },
+    {
+      "id": "la-maison-dear-leon",
+      "name": "La Maison by Café Dear Leon",
+      "branch": "Remington",
+      "cluster": "north-central",
+      "address": "2600 N Howard St, Baltimore, MD 21218",
+      "lat": 39.3194377,
+      "lng": -76.6203255,
+      "confidence": "likely",
+      "priceBand": 2,
+      "url": "https://cafedearleon.com/",
+      "phone": null,
+      "signature": "S'mores cookie",
+      "blurb": "The Remington sibling of the Canton cafe, and by far the biggest room on this list: 5,000 square feet, 155 seats inside and another 68 on the patio. A Korean American take on a French boulangerie. Better known for its s'mores cookie than its plain chocolate chip, so treat the chocolate chip as a good bet rather than a promise.",
+      "hours": [
+        { "open": "07:30", "close": "15:00" },
+        { "open": "07:30", "close": "15:00" },
+        { "open": "07:30", "close": "15:00" },
+        { "open": "07:30", "close": "15:00" },
+        { "open": "07:30", "close": "15:00" },
+        { "open": "07:30", "close": "15:00" },
+        { "open": "07:30", "close": "15:00" }
+      ],
+      "menu": [
+        { "id": "cc-cookie", "name": "Chocolate chip cookie", "type": "cookie", "primary": true, "priceUSD": 5.0, "note": "Rotates with the daily pastry case." },
+        { "id": "smores-cookie", "name": "S'mores cookie", "type": "cookie", "primary": false, "priceUSD": 5.5, "note": "The one that shows up in every photo." },
+        { "id": "latte", "name": "Latte", "type": "other", "primary": false, "priceUSD": 5.5, "note": "Palate reset, and there is space to sit." }
+      ]
+    },
+    {
+      "id": "insomnia-charles-village",
+      "name": "Insomnia Cookies",
+      "branch": "Charles Village",
+      "cluster": "north-central",
+      "address": "3120 St Paul St, Baltimore, MD 21218",
+      "lat": 39.3266039,
+      "lng": -76.6166564,
+      "confidence": "confirmed",
+      "priceBand": 1,
+      "url": "https://insomniacookies.com/",
+      "phone": null,
+      "signature": "Warm classic chocolate chip",
+      "blurb": "A chain, included on purpose. It is open until 3am near Hopkins, it sells a warm chocolate chip cookie for about two dollars, and it is the baseline every independent bakery here is quietly competing against. If a five dollar artisan cookie cannot beat it on your own rubric, that result is worth knowing.",
+      "hours": [
+        { "open": "11:00", "close": "03:00" },
+        { "open": "10:00", "close": "03:00" },
+        { "open": "10:00", "close": "03:00" },
+        { "open": "10:00", "close": "03:00" },
+        { "open": "10:00", "close": "03:00" },
+        { "open": "10:00", "close": "03:00" },
+        { "open": "11:00", "close": "03:00" }
+      ],
+      "menu": [
+        { "id": "classic-cc", "name": "Classic chocolate chip", "type": "cookie", "primary": true, "priceUSD": 2.35, "note": "Served warm. The control sample." },
+        { "id": "deluxe-cc", "name": "Chocolate chunk deluxe", "type": "cookie", "primary": false, "priceUSD": 3.95, "note": "Thicker, more chocolate, higher price." },
+        { "id": "double-chocolate", "name": "Double chocolate chunk", "type": "cookie", "primary": false, "priceUSD": 2.35, "note": "For the chocolate factor comparison." }
+      ]
+    },
+    {
+      "id": "aunt-kellys",
+      "name": "Aunt Kelly's Cookies",
+      "branch": null,
+      "cluster": "central",
+      "address": "857 N Howard St, Baltimore, MD 21201",
+      "lat": 39.2999219,
+      "lng": -76.6197869,
+      "confidence": "confirmed",
+      "priceBand": 1,
+      "url": "https://www.auntkellyscookies.com/",
+      "phone": "(410) 225-9100",
+      "signature": "Butter crunch, chocolate chip",
+      "blurb": "A cookie shop, not a bakery that happens to sell cookies, which makes it the closest thing this list has to a benchmark. Black owned, on Mount Vernon's Antique Row, baking daily. Butter crunch is the famous one. Chocolate chip is the one people argue about. Closes at 5 and shuts Sunday and Monday, so it shapes your route more than anything else here.",
+      "hours": [
+        null,
+        null,
+        { "open": "11:00", "close": "17:00" },
+        { "open": "11:00", "close": "17:00" },
+        { "open": "11:00", "close": "17:00" },
+        { "open": "11:00", "close": "17:00" },
+        { "open": "11:00", "close": "17:00" }
+      ],
+      "menu": [
+        { "id": "cc-cookie", "name": "Chocolate chip cookie", "type": "cookie", "primary": true, "priceUSD": 2.5, "note": "Baked daily on site." },
+        { "id": "butter-crunch", "name": "Butter crunch", "type": "cookie", "primary": false, "priceUSD": 2.5, "note": "The one that made the shop's name." },
+        { "id": "butter-pecan", "name": "Butter pecan", "type": "cookie", "primary": false, "priceUSD": 2.75, "note": "Third in the rotation of favourites." }
+      ]
+    },
+    {
+      "id": "patisserie-poupon",
+      "name": "Patisserie Poupon",
+      "branch": null,
+      "cluster": "central",
+      "address": "820 E Baltimore St, Baltimore, MD 21202",
+      "lat": 39.2902766,
+      "lng": -76.6048157,
+      "confidence": "rotating",
+      "priceBand": 2,
+      "url": "https://patisseriepoupon.com/pages/hours",
+      "phone": "(410) 332-0390",
+      "signature": "Canelé",
+      "blurb": "A genuinely French patisserie that has been downtown for decades. Cookies are on the menu, but the house is built on canelés, croissants and tiramisu. Include it if you want to test whether classical French technique produces a better American cookie. Sometimes the answer is no, and that is still a finding.",
+      "hours": [
+        null,
+        null,
+        { "open": "08:00", "close": "17:00" },
+        { "open": "08:00", "close": "17:00" },
+        { "open": "08:00", "close": "17:00" },
+        { "open": "08:00", "close": "17:00" },
+        { "open": "08:00", "close": "17:00" }
+      ],
+      "menu": [
+        { "id": "cc-cookie", "name": "Chocolate chip cookie", "type": "cookie", "primary": true, "priceUSD": 4.0, "note": "On the cookie case some days." },
+        { "id": "canele", "name": "Canelé", "type": "other", "primary": false, "priceUSD": 4.25, "note": "What the place is actually famous for." },
+        { "id": "pain-au-chocolat", "name": "Pain au chocolat", "type": "other", "primary": false, "priceUSD": 4.75, "note": "A second read on their chocolate sourcing." }
+      ]
+    },
+    {
+      "id": "ovenbird-little-italy",
+      "name": "Ovenbird Bakery",
+      "branch": "Little Italy",
+      "cluster": "harbor-east",
+      "address": "300 S Exeter St, Baltimore, MD 21202",
+      "lat": 39.2865562,
+      "lng": -76.6008862,
+      "confidence": "confirmed",
+      "priceBand": 2,
+      "url": "https://ovenbirdbread.com/cookies/",
+      "phone": null,
+      "signature": "Chocolate ChiRp",
+      "blurb": "The original Ovenbird, and the most useful control in the whole tour. Same recipe as the Rotunda shop, different oven, different baker on shift. If your scores diverge between the two, that tells you something about your own palate before it tells you anything about the cookie.",
+      "hours": [
+        { "open": "08:00", "close": "15:00" },
+        { "open": "08:00", "close": "16:00" },
+        { "open": "08:00", "close": "16:00" },
+        { "open": "08:00", "close": "16:00" },
+        { "open": "08:00", "close": "16:00" },
+        { "open": "08:00", "close": "16:00" },
+        { "open": "08:00", "close": "16:00" }
+      ],
+      "menu": [
+        { "id": "chocolate-chirp", "name": "Chocolate ChiRp Cookie", "type": "cookie", "primary": true, "priceUSD": 4.5, "note": "Shaved Belgian milk chocolate, Maldon salt." },
+        { "id": "focaccia", "name": "Focaccia", "type": "other", "primary": false, "priceUSD": 5.0, "note": "The Little Italy shop leans savoury." },
+        { "id": "sourdough-loaf", "name": "Country sourdough loaf", "type": "other", "primary": false, "priceUSD": 9.0, "note": "The bakery's foundation." }
+      ]
+    },
+    {
+      "id": "kneads-bakeshop",
+      "name": "Kneads Bakeshop",
+      "branch": "Harbor East",
+      "cluster": "harbor-east",
+      "address": "506 S Central Ave, Baltimore, MD 21202",
+      "lat": 39.2851168,
+      "lng": -76.5991068,
+      "confidence": "confirmed",
+      "priceBand": 2,
+      "url": "https://kneadsbakeshop.com/",
+      "phone": "(410) 220-0907",
+      "signature": "Chocolate chip chunk",
+      "blurb": "An artisan bakeshop and cafe doing handcrafted breads and a proper cafe menu, open seven days from 7 to 5. That makes it the most reliable stop here: no rotating list, no early close, chocolate chip on the counter every day. Seven hundred metres from Ovenbird's Little Italy shop, so the two make an easy back to back comparison.",
+      "hours": [
+        { "open": "07:00", "close": "17:00" },
+        { "open": "07:00", "close": "17:00" },
+        { "open": "07:00", "close": "17:00" },
+        { "open": "07:00", "close": "17:00" },
+        { "open": "07:00", "close": "17:00" },
+        { "open": "07:00", "close": "17:00" },
+        { "open": "07:00", "close": "17:00" }
+      ],
+      "menu": [
+        { "id": "cc-chunk", "name": "Chocolate chip chunk cookie", "type": "cookie", "primary": true, "priceUSD": 4.0, "note": "On the counter every day." },
+        { "id": "sprinkledoodle", "name": "Sprinkledoodle", "type": "cookie", "primary": false, "priceUSD": 4.0, "note": "House twist on a snickerdoodle." },
+        { "id": "oatmeal-raisin", "name": "Oatmeal raisin", "type": "cookie", "primary": false, "priceUSD": 4.0, "note": "The control for people who claim to prefer it." }
+      ]
+    },
+    {
+      "id": "pitango-bakery",
+      "name": "Pitango Bakery + Café",
+      "branch": "Fells Point",
+      "cluster": "fells-point",
+      "address": "903 S Ann St, Baltimore, MD 21231",
+      "lat": 39.2815455,
+      "lng": -76.5909807,
+      "confidence": "rotating",
+      "priceBand": 2,
+      "url": "https://www.toasttab.com/local/order/pitango-bakery-and-cafe-903-s-ann-st-baltimore-md-21231",
+      "phone": null,
+      "signature": "Daily bread and pastry",
+      "blurb": "On a quiet waterfront side street, and open until 9 or 10 at night, which no other bakery here manages. That makes it the one stop that works as an actual sit down date rather than a counter visit. Italian leaning. Chocolate chip cookies appear some days and not others.",
+      "hours": [
+        { "open": "07:00", "close": "21:00" },
+        { "open": "07:00", "close": "21:00" },
+        { "open": "07:00", "close": "21:00" },
+        { "open": "07:00", "close": "21:00" },
+        { "open": "07:00", "close": "21:00" },
+        { "open": "07:00", "close": "22:00" },
+        { "open": "07:00", "close": "22:00" }
+      ],
+      "menu": [
+        { "id": "cc-cookie", "name": "Chocolate chip cookie", "type": "cookie", "primary": true, "priceUSD": 4.0, "note": "Appears on the case some days." },
+        { "id": "cornetto", "name": "Cornetto", "type": "other", "primary": false, "priceUSD": 4.5, "note": "The Italian answer to a croissant." },
+        { "id": "espresso", "name": "Espresso", "type": "other", "primary": false, "priceUSD": 3.5, "note": "Sit down and reset." }
+      ]
+    },
+    {
+      "id": "sacre-sucre",
+      "name": "Sacré Sucré",
+      "branch": "Fells Point",
+      "cluster": "fells-point",
+      "address": "933 Fell St, Baltimore, MD 21231",
+      "lat": 39.2812058,
+      "lng": -76.5898993,
+      "confidence": "rotating",
+      "priceBand": 3,
+      "url": "https://www.sacresucre.com/visit",
+      "phone": "(443) 873-0020",
+      "signature": "French macarons",
+      "blurb": "Macarons are the specialty and the reason the shop outgrew Fleet Street and moved into a much larger waterfront space in 2024. It sells cookies, including in gift boxes, but a chocolate chip cookie is not the headline. Two hundred metres from Pitango, so checking both costs you nothing.",
+      "hours": [
+        { "open": "09:00", "close": "17:00" },
+        { "open": "07:00", "close": "13:00" },
+        { "open": "07:00", "close": "13:00" },
+        { "open": "09:00", "close": "18:00" },
+        { "open": "09:00", "close": "18:00" },
+        { "open": "09:00", "close": "18:00" },
+        { "open": "09:00", "close": "18:00" }
+      ],
+      "menu": [
+        { "id": "cc-cookie", "name": "Chocolate chip cookie", "type": "cookie", "primary": true, "priceUSD": 4.5, "note": "Part of the cookie box range." },
+        { "id": "macaron", "name": "Macaron", "type": "other", "primary": false, "priceUSD": 3.0, "note": "The actual specialty." },
+        { "id": "eclair", "name": "Éclair", "type": "other", "primary": false, "priceUSD": 6.5, "note": "Second read on their pastry cream." }
+      ]
+    },
+    {
+      "id": "cafe-dear-leon",
+      "name": "Café Dear Leon",
+      "branch": "Canton",
+      "cluster": "east",
+      "address": "2929 O'Donnell St, Baltimore, MD 21224",
+      "lat": 39.2799023,
+      "lng": -76.5743220,
+      "confidence": "likely",
+      "priceBand": 2,
+      "url": "https://cafedearleon.com/",
+      "phone": "(667) 335-9160",
+      "signature": "S'mores cookie",
+      "blurb": "The original, on O'Donnell Square, and it opens at 6am, earlier than anything else here. Strong pastry programme, and the s'mores cookie is the one that shows up in every photo. The coffee matters more than it sounds like it should when you are five cookies deep and need to reset your palate.",
+      "hours": [
+        { "open": "06:00", "close": "15:00" },
+        null,
+        { "open": "06:00", "close": "15:00" },
+        { "open": "06:00", "close": "15:00" },
+        { "open": "06:00", "close": "15:00" },
+        { "open": "06:00", "close": "15:00" },
+        { "open": "06:00", "close": "15:00" }
+      ],
+      "menu": [
+        { "id": "cc-cookie", "name": "Chocolate chip cookie", "type": "cookie", "primary": true, "priceUSD": 4.5, "note": "Rotates through the pastry case." },
+        { "id": "smores-cookie", "name": "S'mores cookie", "type": "cookie", "primary": false, "priceUSD": 5.0, "note": "The house signature." },
+        { "id": "cortado", "name": "Cortado", "type": "other", "primary": false, "priceUSD": 4.75, "note": "The palate reset that saves the tour." }
+      ]
+    },
+    {
+      "id": "ovenbird-highlandtown",
+      "name": "Ovenbird Bakery",
+      "branch": "Highlandtown",
+      "cluster": "east",
+      "address": "3925 Gough St #2, Baltimore, MD 21224",
+      "lat": 39.2884796,
+      "lng": -76.5639229,
+      "confidence": "confirmed",
+      "priceBand": 2,
+      "url": "https://ovenbirdbread.com/cookies/",
+      "phone": null,
+      "signature": "Chocolate ChiRp",
+      "blurb": "The third Ovenbird and the one with the longest hours, open until 7 on weekdays. If your date starts late, this is often the only serious bakery in the city still open. Same Chocolate ChiRp as the other two.",
+      "hours": [
+        { "open": "08:00", "close": "15:00" },
+        { "open": "08:00", "close": "19:00" },
+        { "open": "08:00", "close": "19:00" },
+        { "open": "08:00", "close": "19:00" },
+        { "open": "08:00", "close": "19:00" },
+        { "open": "08:00", "close": "19:00" },
+        { "open": "08:00", "close": "16:00" }
+      ],
+      "menu": [
+        { "id": "chocolate-chirp", "name": "Chocolate ChiRp Cookie", "type": "cookie", "primary": true, "priceUSD": 4.5, "note": "Shaved Belgian milk chocolate, Maldon salt." },
+        { "id": "morning-bun", "name": "Morning bun", "type": "other", "primary": false, "priceUSD": 5.0, "note": "Gone by mid morning." },
+        { "id": "sourdough-loaf", "name": "Country sourdough loaf", "type": "other", "primary": false, "priceUSD": 9.0, "note": "Take one home." }
+      ]
+    },
+    {
+      "id": "zoes-just-dezzerts",
+      "name": "Zoe's Just Dezzerts",
+      "branch": "Federal Hill",
+      "cluster": "federal-hill",
+      "address": "828 S Charles St, Baltimore, MD 21230",
+      "lat": 39.2790646,
+      "lng": -76.6147664,
+      "confidence": "likely",
+      "priceBand": 1,
+      "url": "https://zoesdezzerts.com/hours",
+      "phone": "(443) 961-7241",
+      "signature": "Cakes, cupcakes and cookies",
+      "blurb": "The only Federal Hill stop still standing after a rough couple of years for bakeries down here. Cakes, cupcakes, tarts and cookies, with allergy friendly options that go further than most. Afternoons only, from half twelve, and closed Monday and Tuesday, so it is an end of tour stop rather than a start.",
+      "hours": [
+        { "open": "12:30", "close": "18:30" },
+        null,
+        null,
+        { "open": "12:30", "close": "18:30" },
+        { "open": "12:30", "close": "18:30" },
+        { "open": "12:30", "close": "18:30" },
+        { "open": "12:30", "close": "18:30" }
+      ],
+      "menu": [
+        { "id": "cc-cookie", "name": "Chocolate chip cookie", "type": "cookie", "primary": true, "priceUSD": 3.5, "note": "Ask what came out today." },
+        { "id": "cupcake", "name": "Cupcake", "type": "other", "primary": false, "priceUSD": 4.5, "note": "The thing they are best known for." },
+        { "id": "tart", "name": "Fruit tart", "type": "other", "primary": false, "priceUSD": 5.5, "note": "A break from chocolate." }
+      ]
+    }
+  ],
+  "closedSince": [
+    {
+      "name": "Maillard Patisserie",
+      "address": "3528 Chestnut Ave, Baltimore, MD 21211",
+      "closed": "2026-05",
+      "note": "Both the Hampden and Hamilton shops shut in early May 2026. The owner cited the workload of running a small business. Common Ground, a hundred metres up the same street, took its place on this list."
+    },
+    {
+      "name": "Dulceology Bakery",
+      "address": "1138 S Charles St, Baltimore, MD 21230",
+      "closed": "2026-05-17",
+      "note": "Closed its Federal Hill storefront after six years. Zoe's Just Dezzerts, three blocks north, took its place on this list."
+    }
+  ]
+}

@@ -1,0 +1,208 @@
+{
+  "version": "2.0.0",
+  "scale": { "min": 1, "max": 10, "step": 1 },
+  "method": {
+    "name": "Weighted anchored rubric",
+    "summary": "Every factor is scored 1 to 10 against written anchors, then combined with fixed weights into a score out of 100. Anchors are what make two people's numbers comparable: everyone is told what a 3 means before they score anything. Cookies and non-cookie items use different rubrics, because scoring a cortado on 'chocolate' and 'salt balance' would produce a number that looks rigorous and means nothing.",
+    "totalFormula": "total = 10 x sum(weight_i x score_i)",
+    "honestCaveat": "The weights below are considered judgements, not findings. Nobody has run an inter-rater reliability study on Baltimore cookies. Treat the totals as a structured way to argue, not as measurement."
+  },
+
+  "rubrics": {
+    "cookie": {
+      "label": "Chocolate chip cookie",
+      "appliesTo": "cookie",
+      "factors": [
+        {
+          "id": "chocolate",
+          "name": "Chocolate",
+          "weight": 0.22,
+          "short": "Quality, quantity, distribution and melt.",
+          "prompt": "How good is the chocolate itself, and is there chocolate in every bite?",
+          "anchors": {
+            "1": "Waxy, artificial, or barely there. Bites with no chocolate at all.",
+            "3": "Generic chips. Sweet without cocoa flavour, clustered unevenly.",
+            "5": "Decent chips, present in most bites, no real character.",
+            "7": "Good chocolate with actual cocoa bitterness, well spread, still soft.",
+            "9": "High quality chocolate in pools or sheets, complex, in every bite.",
+            "10": "Chocolate you would eat on its own, perfectly placed, still molten."
+          }
+        },
+        {
+          "id": "texture",
+          "name": "Texture contrast",
+          "weight": 0.22,
+          "short": "The gradient from crisp edge to soft centre.",
+          "prompt": "Is there a real difference between the edge and the middle, and is the middle still tender?",
+          "anchors": {
+            "1": "Uniformly hard and dry, or uniformly raw. No gradient at all.",
+            "3": "Cakey throughout, or crisp throughout, with nothing to contrast.",
+            "5": "Slightly crisp edge, soft middle, but the transition is vague.",
+            "7": "Clear crisp edge, chewy middle, holds together when you tear it.",
+            "9": "Sharp contrast: shattering edge, dense pull in the centre.",
+            "10": "Three distinct zones, edge to ring to centre, each one deliberate."
+          }
+        },
+        {
+          "id": "dough",
+          "name": "Dough flavour",
+          "weight": 0.20,
+          "short": "Browned butter, caramelisation, vanilla and wheat.",
+          "prompt": "Ignore the chocolate. Does the dough itself taste of anything?",
+          "anchors": {
+            "1": "Raw flour, chemical leavening, or nothing at all.",
+            "3": "Sweet and neutral. Sugar is the only flavour present.",
+            "5": "Clean butter and vanilla. Pleasant, unremarkable.",
+            "7": "Browned butter or real caramelisation, with some toffee depth.",
+            "9": "Layered: nutty browned butter, toffee, malt, a hint of ferment.",
+            "10": "You would happily eat this dough with no chocolate in it."
+          }
+        },
+        {
+          "id": "salt",
+          "name": "Salt balance",
+          "weight": 0.14,
+          "short": "Seasoning in the dough and salt on the finish.",
+          "prompt": "Does salt sharpen the sweetness, or is it absent or overdone?",
+          "anchors": {
+            "1": "Cloying and flat, or so salty it distracts from everything else.",
+            "3": "Under seasoned. The sweetness has nothing pushing back on it.",
+            "5": "Adequately seasoned dough, no finishing salt, nothing wrong.",
+            "7": "Well seasoned, with flaked salt that lands on some bites.",
+            "9": "Deliberate salt on top, sized right, hitting most bites.",
+            "10": "Salt is doing structural work: it changes how sweet the cookie reads."
+          }
+        },
+        {
+          "id": "structure",
+          "name": "Structure and bake",
+          "weight": 0.12,
+          "short": "Height, spread, crackle and evenness.",
+          "prompt": "Does it look like someone knew what they were doing?",
+          "anchors": {
+            "1": "Burnt, raw, shattered, or spread into a flat greasy disc.",
+            "3": "Pale and doughy, or over baked and hard, and uneven across the cookie.",
+            "5": "Evenly baked, ordinary shape, no visual interest.",
+            "7": "Good height, ripples or a crackled top, even golden colour.",
+            "9": "Deliberate shape, dramatic ridges, evenly baked right to the edge.",
+            "10": "Looks engineered. You want to photograph it before eating it."
+          }
+        },
+        {
+          "id": "freshness",
+          "name": "Freshness at service",
+          "weight": 0.10,
+          "short": "How it was handed to you, on the day you were there.",
+          "prompt": "Was it baked today, and did they serve it in decent condition?",
+          "anchors": {
+            "1": "Stale, hard, or clearly days old.",
+            "3": "Baked yesterday. Dry at the edges.",
+            "5": "Baked today, served at room temperature.",
+            "7": "Baked within a few hours, still soft in the middle.",
+            "9": "Warm, chocolate still soft, out of the oven within the hour.",
+            "10": "Handed over hot enough that you had to wait to eat it."
+          }
+        }
+      ]
+    },
+
+    "general": {
+      "label": "Everything else on the counter",
+      "appliesTo": "other",
+      "note": "Used for pastries, bread, coffee and anything else that is not a cookie. Four factors instead of six, because the cookie-specific ones do not transfer. Scores from this rubric are kept in a separate ranking and never mixed with cookie scores.",
+      "factors": [
+        {
+          "id": "dough",
+          "name": "Flavour",
+          "weight": 0.35,
+          "short": "Does it taste of what it claims to be?",
+          "prompt": "Set aside how it looks. Is the flavour clear, deep and correct for the thing?",
+          "anchors": {
+            "1": "Off, stale, or tasting of nothing.",
+            "3": "Flat and generic. Recognisable but forgettable.",
+            "5": "Clean and correct, without much depth.",
+            "7": "Clear, well developed flavour with some complexity.",
+            "9": "Distinctive and layered. You would seek this out again.",
+            "10": "The best version of this thing you have had in the city."
+          }
+        },
+        {
+          "id": "texture",
+          "name": "Texture",
+          "weight": 0.30,
+          "short": "Crumb, lamination, pull, body.",
+          "prompt": "Does the texture do what this kind of thing is supposed to do?",
+          "anchors": {
+            "1": "Soggy, dry, greasy, or collapsed.",
+            "3": "Noticeably wrong for the type, but edible.",
+            "5": "Acceptable. Nothing to complain about, nothing to note.",
+            "7": "Properly executed: real lamination, open crumb, or clean body.",
+            "9": "Excellent, with contrast and structure you can feel.",
+            "10": "Technically outstanding. Hard to make and clearly made well."
+          }
+        },
+        {
+          "id": "structure",
+          "name": "Craft",
+          "weight": 0.20,
+          "short": "Shaping, finishing, consistency, presentation.",
+          "prompt": "Does it show the hand of someone who cares?",
+          "anchors": {
+            "1": "Sloppy, broken, or clearly rushed.",
+            "3": "Careless finishing, uneven from one to the next.",
+            "5": "Tidy and consistent, without ambition.",
+            "7": "Neat, deliberate, well finished.",
+            "9": "Precise, with detail most places would skip.",
+            "10": "Immaculate. Worth watching them make it."
+          }
+        },
+        {
+          "id": "freshness",
+          "name": "Freshness at service",
+          "weight": 0.15,
+          "short": "How it was handed to you, on the day you were there.",
+          "prompt": "Was it made today, and served in decent condition?",
+          "anchors": {
+            "1": "Stale or clearly held over from a previous day.",
+            "3": "Made yesterday, and you can tell.",
+            "5": "Made today, served at room temperature.",
+            "7": "Made within a few hours, in good condition.",
+            "9": "Just out of the oven or just pulled.",
+            "10": "So fresh you had to wait for it to be safe to eat."
+          }
+        }
+      ]
+    }
+  },
+
+  "derived": {
+    "recipeScore": {
+      "label": "Recipe score",
+      "summary": "The total with freshness removed and the remaining weights renormalised. Freshness says more about what time you turned up than about the recipe, so this is the fairer number for comparing bakeries that you visited at different hours.",
+      "formula": "recipe = 10 x sum(weight_i x score_i) / sum(weight_i), over all factors except freshness"
+    },
+    "valueIndex": {
+      "label": "Points per dollar",
+      "summary": "Total score divided by what you actually paid.",
+      "formula": "value = total / price_paid",
+      "caveat": "This measure favours cheap cookies by construction. Prices on this tour range from about $2.35 to about $5.50, a spread of more than two to one, while totals realistically cluster between 50 and 90, a spread of less than two to one. So price moves the number more than quality does. That is a real property of points per dollar, not a bug, and it is why value is shown as a separate column rather than folded into the ranking. Use it to answer 'what should I buy on a budget', not 'which cookie is best'."
+    }
+  },
+
+  "ranking": {
+    "method": "Shrunk mean",
+    "summary": "Raw averages are useless on small samples: one enthusiastic 9 would outrank ten honest 8.6s. Rankings pull each stop's mean toward the overall mean in proportion to how little data it has, so a stop needs repeat scores to hold a top position.",
+    "formula": "adjusted = (n x item_mean + m x global_mean) / (n + m)",
+    "priorWeight": 1.5,
+    "showSampleSize": true,
+    "minScoresForBadge": 2,
+    "priorWeightNote": "1.5 is tuned for two people on a date, where two scores per item is the natural ceiling rather than a small sample. It leaves a single score weighted 40 percent against the overall mean and a pair weighted 57 percent, which shrinks a lone outlier hard without flattening everything toward the average. A larger prior would make every ranking on a two person tour read as the global mean."
+  },
+
+  "notes": [
+    "Cookie weights sum to 1.00, and so do the general ones. Chocolate and texture carry the most because they are what separate a good cookie from an ordinary one.",
+    "Score every factor even when you are unsure. A missing factor distorts the total more than a rough guess does.",
+    "Two people scoring the same cookie should compare factor by factor, not total by total. The disagreement is where the interesting part is.",
+    "Score before you look at anyone else's numbers. The app hides other people's scores for an item until you have submitted your own, because seeing them first quietly drags your score toward theirs."
+  ]
+}
