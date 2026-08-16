@@ -725,11 +725,28 @@ export class SupabaseAdapter {
     const codeError = validatePartyCode(partyCode);
     if (codeError) throw new Error(codeError);
 
-    const saved = await this._rest('tasters', {
+    const write = () => this._rest('tasters', {
       method: 'POST',
       body: { id: this.userId, display_name: String(displayName).trim() },
       prefer: 'resolution=merge-duplicates,return=representation',
     });
+
+    let saved;
+    try {
+      saved = await write();
+    } catch (err) {
+      // tasters.id is a foreign key to auth.users, and a JWT outlives the user
+      // it names: PostgREST checks the signature, not whether the account still
+      // exists. So after the leaderboard is reset (db/reset-test-data.sql) every
+      // phone is holding a token for a deleted account, and the only symptom is
+      // that saving your name fails with a foreign key error nobody can act on.
+      // Sign in again and write it under the new identity instead.
+      if (/tasters_id_fkey|foreign key/i.test(err.message)) {
+        await this._signInAnonymously();
+        this._scheduleRefresh();
+        saved = await write();
+      } else throw err;
+    }
     this._taster = Array.isArray(saved) ? saved[0] : saved;
 
     if (partyCode) await this.joinParty(partyCode);

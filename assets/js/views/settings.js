@@ -1,10 +1,10 @@
 /* Setup: identity, party, storage, themes and data export. */
 
-import { el, icon, ICONS, clear, toast } from '../lib/dom.js?v=e60178fd';
-import { state, emit, shareUrl, mintPartyCode } from '../lib/state.js?v=e60178fd';
-import { renderThemePicker, currentTheme } from '../themes.js?v=e60178fd';
-import { requestPersistence } from '../lib/storage.js?v=e60178fd';
-import { refresh as refreshResults } from './results.js?v=e60178fd';
+import { el, icon, ICONS, clear, toast } from '../lib/dom.js?v=8b1733e4';
+import { state, emit, shareUrl, mintPartyCode } from '../lib/state.js?v=8b1733e4';
+import { renderThemePicker, currentTheme } from '../themes.js?v=8b1733e4';
+import { requestPersistence } from '../lib/storage.js?v=8b1733e4';
+import { refresh as refreshResults } from './results.js?v=8b1733e4';
 
 function statusCard() {
   const store = state.store;

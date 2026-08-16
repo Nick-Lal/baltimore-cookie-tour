@@ -174,6 +174,50 @@ acheck('both adapters expose the same profile interface', async () => {
   }
 });
 
+acheck('a session naming a deleted auth user signs in again instead of dead-ending', async () => {
+  store.clear();
+  // The state left behind by db/reset-test-data.sql: the JWT is still valid,
+  // because PostgREST checks the signature and not whether the account exists,
+  // so the failure only surfaces when something touches the foreign key to
+  // auth.users. Saving your name is exactly that.
+  const a = adapterAs('ghost-user', null);
+  a._taster = null;
+  let attempts = 0;
+  a._rest = async (path, opts) => {
+    if (path !== 'tasters' || opts?.method !== 'POST') return [];
+    attempts++;
+    if (attempts === 1) {
+      throw new Error('insert or update on table "tasters" violates foreign key constraint "tasters_id_fkey"');
+    }
+    return [{ id: a.userId, display_name: opts.body.display_name }];
+  };
+  let signedInAgain = false;
+  a._signInAnonymously = async () => {
+    signedInAgain = true;
+    a.session = { access_token: 't2', user: { id: 'fresh-user' } };
+  };
+  a._scheduleRefresh = () => {};
+  a._loadParties = async () => {};
+
+  const taster = await a.signIn('Nick', null);
+  eq(attempts, 2, 'write attempts');
+  eq(signedInAgain, true, 'signed in again');
+  eq(taster.display_name, 'Nick', 'name saved');
+  eq(a.userId, 'fresh-user', 'now under the new identity');
+});
+
+acheck('a name that is merely invalid does not trigger a pointless re-sign-in', async () => {
+  store.clear();
+  const a = adapterAs('user-A', 'Nick');
+  let signedInAgain = false;
+  a._signInAnonymously = async () => { signedInAgain = true; };
+  a._rest = async () => { throw new Error('value too long for type character varying'); };
+  let threw = null;
+  try { await a.signIn('Nick', null); } catch (err) { threw = err.message; }
+  if (!threw) throw new Error('an unrelated failure was swallowed');
+  eq(signedInAgain, false, 'identity churned for an unrelated error');
+});
+
 acheck('switching to an unknown profile fails loudly instead of silently doing nothing', async () => {
   store.clear();
   const a = adapterAs('user-A', 'Nick');
@@ -191,5 +235,7 @@ for (const [name, fn] of asyncChecks) {
 
 console.log(`\n${passed} passed, ${failures.length} failed\n`);
 for (const f of failures) console.error(`  FAIL  ${f}`);
-if (!failures.length) console.log('  Queued scores stay with the person who wrote them.\n');
+if (!failures.length) {
+  console.log('  Queued scores stay with the person who wrote them, and a stale identity recovers.\n');
+}
 process.exit(failures.length ? 1 : 0);
