@@ -127,8 +127,10 @@ create index if not exists party_join_attempts_idx
 
 create table if not exists public.rating_events (
   id             uuid primary key default gen_random_uuid(),
-  taster_id      uuid not null references public.tasters (id) on delete cascade,
-  item_key       text not null references public.stop_items (key) on delete cascade,
+  -- restrict, not cascade: a cascade here would let a taster delete their own
+  -- scores by deleting their profile, which would break the append-only promise.
+  taster_id      uuid not null references public.tasters (id) on delete restrict,
+  item_key       text not null references public.stop_items (key) on delete restrict,
   item_type      text not null check (item_type in ('cookie', 'other')),
 
   chocolate  smallint check (chocolate  between 1 and 10),
@@ -375,9 +377,13 @@ alter table public.party_join_attempts enable row level security;
 alter table public.rating_events       enable row level security;
 
 alter table public.tasters             force row level security;
-alter table public.parties             force row level security;
-alter table public.party_members       force row level security;
 alter table public.rating_events       force row level security;
+
+-- parties and party_members are deliberately NOT forced. They are written only
+-- by join_party(), which is SECURITY DEFINER and therefore runs as the table
+-- owner. FORCE would subject the owner to RLS as well, and since neither table
+-- has an INSERT policy, joining a party would fail outright. Clients still
+-- cannot write to them: no INSERT grant is issued to anon or authenticated.
 
 -- reference data: readable by all, writable by nobody through the API
 drop policy if exists stop_items_read on public.stop_items;
@@ -400,9 +406,9 @@ create policy tasters_update_self on public.tasters
   for update to authenticated
   using (id = (select auth.uid())) with check (id = (select auth.uid()));
 
-drop policy if exists tasters_delete_self on public.tasters;
-create policy tasters_delete_self on public.tasters
-  for delete to authenticated using (id = (select auth.uid()));
+-- No delete policy on tasters, and no delete grant. Scores are append-only and
+-- reference their author, so allowing self-deletion would be a back door to
+-- erasing your own scores.
 
 -- parties: visible only to members, and the hash is never granted anyway
 drop policy if exists parties_select_member on public.parties;
@@ -435,23 +441,32 @@ revoke all on all tables in schema public from anon, authenticated;
 
 grant select                 on public.stop_items          to anon, authenticated;
 grant select                 on public.rubric_weights      to anon, authenticated;
-grant select                 on public.tasters             to anon, authenticated;
-grant insert, update, delete on public.tasters             to authenticated;
-grant select                 on public.rating_events       to anon, authenticated;
-grant insert                 on public.rating_events       to authenticated;
+grant select on public.tasters to anon, authenticated;
+-- Column-level grants, not table-level. A table-level GRANT covers every
+-- column and a later column-level REVOKE does not narrow it, so listing the
+-- writable columns explicitly is the only thing that actually works.
+grant insert (id, display_name, theme)      on public.tasters to authenticated;
+grant update (display_name, theme)          on public.tasters to authenticated;
+
+grant select on public.rating_events to anon, authenticated;
+grant insert (taster_id, item_key, chocolate, texture, dough, salt, structure,
+              freshness, price_paid, notes, visited_on, rubric_version)
+  on public.rating_events to authenticated;
 grant select                 on public.parties             to authenticated;
 grant select                 on public.party_members       to authenticated;
 grant select                 on public.ratings_current     to anon, authenticated;
 grant select                 on public.rating_feed         to anon, authenticated;
 grant select                 on public.rating_history      to anon, authenticated;
 
--- Server-computed and server-stamped columns must never be client writable.
-revoke insert (id, created_at, total_score, recipe_score, item_type)
-  on public.rating_events from authenticated;
-revoke update (id, created_at) on public.tasters from authenticated;
+-- Postgres grants EXECUTE on every new function to PUBLIC by default, so the
+-- explicit grants below are decorative unless PUBLIC is revoked first.
+revoke execute on function public.join_party(text)          from public;
+revoke execute on function public.my_party_ids()            from public;
+revoke execute on function public.rating_events_score()     from public;
+revoke execute on function public.rating_events_rate_limit() from public;
 
-grant execute on function public.join_party(text)  to authenticated;
-grant execute on function public.my_party_ids()    to authenticated;
+grant execute on function public.join_party(text) to authenticated;
+grant execute on function public.my_party_ids()   to authenticated;
 
 -- ===========================================================================
 -- AFTER RUNNING THIS FILE

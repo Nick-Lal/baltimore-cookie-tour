@@ -1,10 +1,10 @@
 /* Setup: identity, party, storage, themes and data export. */
 
-import { el, icon, ICONS, clear, toast } from '../lib/dom.js?v=1ffb8f31';
-import { state, emit } from '../lib/state.js?v=1ffb8f31';
-import { renderThemePicker, currentTheme } from '../themes.js?v=1ffb8f31';
-import { requestPersistence } from '../lib/storage.js?v=1ffb8f31';
-import { refresh as refreshResults } from './results.js?v=1ffb8f31';
+import { el, icon, ICONS, clear, toast } from '../lib/dom.js?v=a6c8cb52';
+import { state, emit } from '../lib/state.js?v=a6c8cb52';
+import { renderThemePicker, currentTheme } from '../themes.js?v=a6c8cb52';
+import { requestPersistence } from '../lib/storage.js?v=a6c8cb52';
+import { refresh as refreshResults } from './results.js?v=a6c8cb52';
 
 function statusCard() {
   const store = state.store;
@@ -17,7 +17,7 @@ function statusCard() {
       ]
     : [
         "Scores are saved on this device only. Nothing leaves your phone, and nothing syncs to anyone else's.",
-        'That is fine for one person on one phone. For two people comparing scores, connect the shared database.',
+        'Two people can still compare properly by sharing one phone and switching between tasters below. To score from two phones at once, connect the shared database.',
       ];
 
   return el('div', {}, [
@@ -34,20 +34,31 @@ function statusCard() {
       : null,
     !cloud
       ? el('p', { class: 'footnote', style: { marginTop: 'var(--sp-3)' } },
-          el('a', { href: 'docs/supabase-setup.md', text: 'How to connect the shared database' }))
+          el('a', { href: 'https://github.com/Nick-Lal/baltimore-cookie-tour/blob/master/docs/supabase-setup.md', target: '_blank', rel: 'noopener noreferrer', text: 'How to connect the shared database' }))
       : null,
   ]);
 }
 
-function profileSwitcher() {
+/*
+ * Two people, one phone.
+ *
+ * On device-only storage there is no sign-in, so without this the second
+ * person to type their name would quietly overwrite the first person's
+ * profile and inherit their scores. That would make the whole point of the
+ * site, two people comparing numbers, impossible on the shipped default.
+ * So the device keeps a list of tasters and you switch between them.
+ */
+async function profileSwitcher() {
   const store = state.store;
   if (store.mode !== 'local' || !store.listProfiles) return null;
 
-  return (async () => {
-    const profiles = await store.listProfiles();
-    if (profiles.length < 2) return null;
-    return el('div', { class: 'card', style: { marginTop: 'var(--sp-3)' } },
-      profiles.map((p) => el('button', {
+  const profiles = await store.listProfiles();
+  const wrap = el('div', { style: { marginTop: 'var(--sp-4)' } });
+
+  if (profiles.length > 1) {
+    wrap.append(
+      el('h3', { class: 'section-header', style: { padding: '0 0 var(--sp-2)' }, text: 'Who is scoring right now' }),
+      el('div', { class: 'card' }, profiles.map((p) => el('button', {
         class: 'list__row list__row--button', type: 'button',
         onclick: async () => {
           await store.switchProfile(p.id);
@@ -60,13 +71,44 @@ function profileSwitcher() {
       }, [
         el('span', { class: 'list__body' }, [
           el('span', { class: 'list__title', text: p.display_name }),
-          el('span', { class: 'list__sub', text: p.party_code ? `Party ${p.party_code}` : 'No party' }),
+          el('span', { class: 'list__sub', text: p.party_code ? `Party ${p.party_code}` : 'No party code' }),
         ]),
         p.id === state.taster?.id
           ? el('span', { style: { color: 'var(--tint)' } }, icon(ICONS.check, { size: 20, width: 2.4 }))
           : null,
-      ])));
-  })();
+      ]))));
+  }
+
+  if (state.taster) {
+    wrap.append(el('button', {
+      class: 'btn btn--tinted btn--full', type: 'button',
+      style: { marginTop: 'var(--sp-3)' },
+      onclick: () => addTasterFlow(),
+    }, 'Add another taster'));
+    wrap.append(el('p', {
+      class: 'footnote secondary', style: { marginTop: 'var(--sp-2)' },
+      text: profiles.length > 1
+        ? 'Hand the phone over and switch to the other name before they score.'
+        : 'Sharing one phone? Add the other person here so your scores stay separate.',
+    }));
+  }
+
+  return wrap;
+}
+
+async function addTasterFlow() {
+  const name = prompt('Name of the other taster');
+  if (name == null) return;
+  try {
+    const code = state.taster?.party_code ?? null;
+    state.taster = await state.store.addProfile(name, code);
+    emit('taster');
+    await refreshResults();
+    render();
+    toast(`Now scoring as ${state.taster.display_name}.`);
+  } catch (err) {
+    toast(err.message);
+  }
 }
 
 /* ----------------------------------------------------------------- render */
@@ -86,8 +128,9 @@ export function render() {
   const switcherHost = document.getElementById('profile-switcher');
   if (switcherHost) {
     clear(switcherHost);
-    const p = profileSwitcher();
-    if (p) p.then((node) => { if (node) switcherHost.append(node); });
+    profileSwitcher().then((node) => {
+      if (node && switcherHost.isConnected) switcherHost.append(node);
+    });
   }
 }
 

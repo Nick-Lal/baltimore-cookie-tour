@@ -10,9 +10,9 @@
 
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8D%AA%3C/text%3E%3C/svg%3E">
 <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
-<link rel="stylesheet" href="assets/css/themes.css?v=1ffb8f31">
-<link rel="stylesheet" href="assets/css/app.css?v=1ffb8f31">
-<link rel="stylesheet" href="assets/css/views.css?v=1ffb8f31">
+<link rel="stylesheet" href="assets/css/themes.css?v=a6c8cb52">
+<link rel="stylesheet" href="assets/css/app.css?v=a6c8cb52">
+<link rel="stylesheet" href="assets/css/views.css?v=a6c8cb52">
 
 <script>
   /* Set the theme before first paint so there is no flash of the wrong one. */
@@ -95,7 +95,7 @@
             <p class="pad footnote tertiary" style="margin:var(--sp-6) 0 var(--sp-4)">
               Researched 16 August 2026. Two bakeries on the original list had already closed, so
               ring ahead before you build a whole afternoon around one.
-              <a href="docs/research/cookie-spots.md">Read the research notes.</a>
+              <a href="https://github.com/Nick-Lal/baltimore-cookie-tour/blob/master/docs/research/cookie-spots.md" target="_blank" rel="noopener noreferrer">Read the research notes.</a>
             </p>
           </div>
 
@@ -199,12 +199,12 @@
             </div>
             <div>
               <label class="form-label" for="party-code">Party code (optional)</label>
-              <input class="field" id="party-code" name="partyCode" type="text" maxlength="24"
+              <input class="field" id="party-code" name="partyCode" type="text" maxlength="40"
                      autocomplete="off" spellcheck="false" placeholder="e.g. saturday-crawl"
-                     pattern="[A-Za-z0-9\-]{3,24}">
+                     pattern="[A-Za-z0-9\-]{6,40}">
               <p class="footnote secondary" style="margin-top:var(--sp-2)">
                 Both of you enter the same code and the results page can show just your two sets of
-                scores. Lowercase letters, numbers and hyphens.
+                scores. Six to forty characters: letters, numbers and hyphens.
               </p>
             </div>
             <button class="btn btn--filled btn--full" type="submit">Save</button>
@@ -239,7 +239,7 @@
             Map tiles by <a href="https://carto.com/attributions">CARTO</a>, data
             <a href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors</a>.
             Stop research compiled 16 August 2026 and
-            <a href="docs/research/cookie-spots.md">written up here</a>.
+            <a href="https://github.com/Nick-Lal/baltimore-cookie-tour/blob/master/docs/research/cookie-spots.md" target="_blank" rel="noopener noreferrer">written up here</a>.
           </p>
         </div>
       </div>
@@ -251,6 +251,6 @@
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script src="vendor/leaflet/leaflet.js"></script>
-<script type="module" src="assets/js/app.js?v=1ffb8f31"></script>
+<script type="module" src="assets/js/app.js?v=a6c8cb52"></script>
 </body>
 </html>
