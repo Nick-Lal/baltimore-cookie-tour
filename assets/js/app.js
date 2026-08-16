@@ -1,15 +1,15 @@
 /* Boot: load data, wire the shell, hand off to the views. */
 
-import { initTheme, applyTheme } from './themes.js';
-import { toast } from './lib/dom.js';
-import { state, emit, subscribe, readHash } from './lib/state.js';
-import { createStore } from './lib/storage.js';
-import { loadMatrix } from './lib/routing.js';
-import { initMap, initStopsView, renderStopList, renderMarkers, hideDetail, fitToStops } from './views/stops.js';
-import { initRouteView, rebuildRoute, render as renderRoute } from './views/route.js';
-import { initScoreView, render as renderScore } from './views/score.js';
-import { initResultsView, refresh as refreshResults } from './views/results.js';
-import { initSettingsView, render as renderSettings } from './views/settings.js';
+import { initTheme, applyTheme } from './themes.js?v=1ffb8f31';
+import { toast } from './lib/dom.js?v=1ffb8f31';
+import { state, emit, subscribe, readHash } from './lib/state.js?v=1ffb8f31';
+import { createStore } from './lib/storage.js?v=1ffb8f31';
+import { loadMatrix } from './lib/routing.js?v=1ffb8f31';
+import { initMap, initStopsView, renderStopList, renderMarkers, hideDetail, fitToStops } from './views/stops.js?v=1ffb8f31';
+import { initRouteView, rebuildRoute, render as renderRoute } from './views/route.js?v=1ffb8f31';
+import { initScoreView, render as renderScore } from './views/score.js?v=1ffb8f31';
+import { initResultsView, refresh as refreshResults } from './views/results.js?v=1ffb8f31';
+import { initSettingsView, render as renderSettings } from './views/settings.js?v=1ffb8f31';
 
 initTheme();
 
@@ -87,9 +87,9 @@ function initSheet() {
     sheet.style.setProperty('--detent', `${px}px`);
   }
 
-  function settle(i) {
+  function settle(i, animate = true) {
     index = Math.max(0, Math.min(2, i));
-    apply(detents()[index], true);
+    apply(detents()[index], animate);
     sheet.classList.toggle('is-peek', index === 0);
     sheet.dataset.detent = NAMES[index];
     grip.setAttribute('aria-valuenow', String(index));
@@ -162,7 +162,9 @@ function initSheet() {
   });
 
   window.addEventListener('resize', () => apply(detents()[index], false));
-  settle(1);
+  // Land on the opening detent without animating, so the sheet is simply
+  // there on load rather than sliding up in front of the user.
+  settle(1, false);
 }
 
 /* ------------------------------------------------------- collapsing titles */

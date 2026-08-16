@@ -205,7 +205,7 @@ h1, h2, h3, .display {
   z-index: -1;
 }
 .segmented button {
-  min-height: 36px;
+  min-height: 44px;
   padding: 0 var(--sp-2);
   font-size: var(--t-subhead);
   font-weight: 500;
@@ -377,11 +377,18 @@ h1, h2, h3, .display {
   color: var(--label-3) !important;
 }
 .leaflet-control-attribution a { color: var(--label-2) !important; }
+/* Leaflet ships 30px controls. The HIG floor is 44. */
 .leaflet-bar a {
   background: var(--bg-elevated) !important;
   color: var(--label) !important;
   border-bottom-color: var(--separator) !important;
+  width: 44px !important;
+  height: 44px !important;
+  line-height: 44px !important;
+  font-size: 20px;
 }
+.leaflet-bar { border-radius: var(--radius-sm) !important; overflow: hidden; }
+.leaflet-control-zoom { margin-bottom: calc(var(--sp-4) + env(safe-area-inset-bottom)) !important; }
 
 /* pin */
 .pin {
