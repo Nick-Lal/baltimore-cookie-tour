@@ -1,6 +1,6 @@
 /* Results: rankings, factor breakdowns, disagreements and movement over time. */
 
-import { el, icon, ICONS, clear, wireSegmented, money } from '../lib/dom.js';
+import { el, clear, wireSegmented } from '../lib/dom.js';
 import { state, subscribe, stopById } from '../lib/state.js';
 import { FACTORS } from '../lib/storage.js';
 

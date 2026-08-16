@@ -2,7 +2,7 @@
 
 import { el, icon, ICONS, clear, toast, money } from '../lib/dom.js';
 import { state, subscribe, emit, stopById } from '../lib/state.js';
-import { FACTORS, totalScore, recipeScore, requestPersistence } from '../lib/storage.js';
+import { totalScore, recipeScore, requestPersistence } from '../lib/storage.js';
 import { CLUSTER_COLOURS } from './stops.js';
 
 let draft = null;

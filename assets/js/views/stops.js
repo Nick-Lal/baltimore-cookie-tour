@@ -1,6 +1,6 @@
 /* Map, stop list and stop detail. */
 
-import { el, icon, ICONS, clear, frag, toast, wireSegmented, DAY_NAMES, prettyTime, money } from '../lib/dom.js';
+import { el, icon, ICONS, clear, toast, wireSegmented, DAY_NAMES, prettyTime, money } from '../lib/dom.js';
 import { state, subscribe, emit, stopById, isPicked, togglePick } from '../lib/state.js';
 import { openAt } from '../lib/routing.js';
 import { boundsOf } from '../lib/geo.js';

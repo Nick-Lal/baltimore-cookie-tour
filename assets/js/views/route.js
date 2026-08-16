@@ -1,10 +1,10 @@
 /* Route building: order, modes, timing and the itinerary. */
 
 import { el, icon, ICONS, clear, toast, money } from '../lib/dom.js';
-import { state, subscribe, emit, pickedStops, moveStop, setOrder, togglePick, shareUrl } from '../lib/state.js';
+import { state, subscribe, pickedStops, moveStop, setOrder, togglePick, shareUrl } from '../lib/state.js';
 import {
   MODES, routeItinerary, itinerarySummary, suggestMode, modeOptionsFor,
-  legAdvisory, schedule, routeLeg, matrixKm, LONG_LEG_KM, SCOOTER_PRICING,
+  legAdvisory, schedule, matrixKm, SCOOTER_PRICING,
 } from '../lib/routing.js';
 import { optimiseOrder, formatKm, formatMins } from '../lib/geo.js';
 import { drawRoute, fitToStops, CLUSTER_COLOURS } from './stops.js';
