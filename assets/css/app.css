@@ -215,7 +215,8 @@ h1, h2, h3, .display {
   transition: color var(--dur-fast) var(--ease);
   white-space: nowrap;
 }
-.segmented button[aria-selected="true"] { color: var(--label); font-weight: 600; }
+.segmented button[aria-selected="true"],
+.segmented button[aria-checked="true"] { color: var(--label); font-weight: 600; }
 
 /* ---------- grouped inset list ---------- */
 .list {
@@ -306,12 +307,13 @@ h1, h2, h3, .display {
   flex-direction: column;
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   box-shadow: var(--shadow-sheet);
-  height: 100dvh;
+  bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  height: var(--detent, 140px);
+  max-height: calc(100dvh - var(--tabbar-h) - env(safe-area-inset-bottom));
   touch-action: none;
-  will-change: transform;
-  transform: translateY(calc(100% - var(--detent, 140px)));
+  will-change: height;
 }
-.sheet.is-animating { transition: transform var(--dur) var(--ease); }
+.sheet.is-animating { transition: height var(--dur) var(--ease); }
 .sheet__grip {
   flex-shrink: 0;
   padding: var(--sp-2) 0 var(--sp-1);
@@ -332,22 +334,21 @@ h1, h2, h3, .display {
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
-  padding-bottom: calc(var(--sp-10) + env(safe-area-inset-bottom));
+  padding-bottom: var(--sp-6);
   touch-action: pan-y;
 }
 .sheet.is-peek .sheet__scroll { overflow-y: hidden; }
 
 /* ---------- tab bar ---------- */
 .tabbar {
-  position: sticky;
-  bottom: 0;
+  position: relative;
   z-index: 90;
+  flex-shrink: 0;
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: 1fr;
   border-top: 1px solid var(--separator);
   padding-bottom: env(safe-area-inset-bottom);
-  flex-shrink: 0;
 }
 .tabbar button {
   min-height: var(--tabbar-h);
@@ -531,6 +532,7 @@ label.form-label {
   :root { --margin: 24px; }
   .app { flex-direction: row; }
   .tabbar {
+    order: -1;
     position: static;
     grid-auto-flow: row;
     grid-auto-columns: none;
@@ -544,7 +546,8 @@ label.form-label {
   .sheet {
     position: static;
     height: auto;
-    transform: none !important;
+    max-height: none;
+    bottom: auto;
     width: 420px;
     flex-shrink: 0;
     border-radius: 0;

@@ -1,9 +1,9 @@
 /* Scoring: pick a stop, pick an item, score it against the anchored rubric. */
 
-import { el, icon, ICONS, clear, toast, money } from '../lib/dom.js?v=a6c8cb52';
-import { state, subscribe, emit, stopById } from '../lib/state.js?v=a6c8cb52';
-import { totalScore, recipeScore, requestPersistence } from '../lib/storage.js?v=a6c8cb52';
-import { CLUSTER_COLOURS } from './stops.js?v=a6c8cb52';
+import { el, icon, ICONS, clear, toast, money } from '../lib/dom.js?v=327f9624';
+import { state, subscribe, emit, stopById } from '../lib/state.js?v=327f9624';
+import { totalScore, recipeScore, requestPersistence } from '../lib/storage.js?v=327f9624';
+import { CLUSTER_COLOURS } from './stops.js?v=327f9624';
 
 let draft = null;
 
@@ -170,8 +170,11 @@ function renderForm(host, stop, item) {
       el('textarea', {
         class: 'field', id: 'notes', maxlength: '500', rows: '3',
         placeholder: 'The bit you will forget by the third stop.',
+        'aria-describedby': 'notes-help',
         oninput: (e) => { draft.notes = e.target.value; },
       }, draft.notes),
+      el('p', { class: 'footnote secondary', id: 'notes-help', style: { marginTop: 'var(--sp-1)' },
+        text: 'Shown on the results page next to your name. Anyone who can see the leaderboard can read it.' }),
     ]),
   ]));
 

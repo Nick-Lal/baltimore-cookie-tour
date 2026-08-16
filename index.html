@@ -10,9 +10,9 @@
 
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8D%AA%3C/text%3E%3C/svg%3E">
 <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
-<link rel="stylesheet" href="assets/css/themes.css?v=a6c8cb52">
-<link rel="stylesheet" href="assets/css/app.css?v=a6c8cb52">
-<link rel="stylesheet" href="assets/css/views.css?v=a6c8cb52">
+<link rel="stylesheet" href="assets/css/themes.css?v=327f9624">
+<link rel="stylesheet" href="assets/css/app.css?v=327f9624">
+<link rel="stylesheet" href="assets/css/views.css?v=327f9624">
 
 <script>
   /* Set the theme before first paint so there is no flash of the wrong one. */
@@ -31,31 +31,6 @@
 
 <div class="app">
 
-  <!-- ============================== tab bar ============================== -->
-  <nav class="tabbar material" role="tablist" aria-label="Sections">
-    <button role="tab" id="tab-map" aria-controls="view-map" aria-selected="true" data-view="map">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3 3 5.5v15L9 18l6 3 6-2.5v-15L15 6 9 3Z"/><path d="M9 3v15M15 6v15"/></svg>
-      <span>Stops</span>
-    </button>
-    <button role="tab" id="tab-route" aria-controls="view-route" aria-selected="false" data-view="route">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="5" r="2.5"/><path d="M8.5 19H15a3.5 3.5 0 0 0 0-7H9a3.5 3.5 0 0 1 0-7h6.5"/></svg>
-      <span>Route</span>
-      <span class="tabbar__count" id="route-count" hidden></span>
-    </button>
-    <button role="tab" id="tab-score" aria-controls="view-score" aria-selected="false" data-view="score">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5 14.6 9l6 .9-4.3 4.2 1 6-5.3-2.8L6.7 20l1-6L3.4 9.9 9.4 9 12 3.5Z"/></svg>
-      <span>Score</span>
-    </button>
-    <button role="tab" id="tab-results" aria-controls="view-results" aria-selected="false" data-view="results">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
-      <span>Results</span>
-    </button>
-    <button role="tab" id="tab-settings" aria-controls="view-settings" aria-selected="false" data-view="settings">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1A1.6 1.6 0 0 0 9 19.4a1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1A1.6 1.6 0 0 0 4.6 9a1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H9a1.6 1.6 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V9a1.6 1.6 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1Z"/></svg>
-      <span>Setup</span>
-    </button>
-  </nav>
-
   <main id="main" class="main">
 
     <!-- ============================= MAP VIEW ============================= -->
@@ -65,12 +40,12 @@
 
         <div class="map-chrome">
           <div class="map-chrome__row">
-            <div class="segmented material" id="map-filter" role="tablist" aria-label="Filter stops">
+            <div class="segmented material" id="map-filter" role="radiogroup" aria-label="Filter stops">
               <span class="segmented__thumb" aria-hidden="true"></span>
-              <button role="tab" aria-selected="true" data-filter="all" id="filter-all">All</button>
-              <button role="tab" aria-selected="false" data-filter="confirmed">Confirmed</button>
-              <button role="tab" aria-selected="false" data-filter="open">Open now</button>
-              <button role="tab" aria-selected="false" data-filter="picked">Picked</button>
+              <button role="radio" aria-checked="true" data-filter="all" id="filter-all">All</button>
+              <button role="radio" aria-checked="false" data-filter="confirmed">Confirmed</button>
+              <button role="radio" aria-checked="false" data-filter="open">Open now</button>
+              <button role="radio" aria-checked="false" data-filter="picked">Picked</button>
             </div>
             <button class="icon-btn material locate-btn" id="locate-me" type="button"
                     aria-label="Show roughly where I am">
@@ -82,7 +57,7 @@
 
       <div class="sheet material" id="stop-sheet" data-detent="medium">
         <div class="sheet__grip" id="sheet-grip" role="slider" tabindex="0"
-             aria-label="Sheet height" aria-valuemin="0" aria-valuemax="2" aria-valuenow="1"
+             aria-label="Sheet height" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="2" aria-valuenow="1"
              aria-valuetext="Half height"></div>
         <div class="sheet__scroll" id="sheet-scroll">
 
@@ -163,11 +138,11 @@
           <p class="callout secondary" id="results-sub">Rankings, factor by factor breakdowns, and where you two disagree.</p>
         </header>
         <div class="pad" style="margin-bottom:var(--sp-4)">
-          <div class="segmented" id="results-filter" role="tablist" aria-label="Whose scores to show">
+          <div class="segmented" id="results-filter" role="radiogroup" aria-label="Whose scores to show">
             <span class="segmented__thumb" aria-hidden="true"></span>
-            <button role="tab" aria-selected="true" data-scope="party">My party</button>
-            <button role="tab" aria-selected="false" data-scope="mine">Just me</button>
-            <button role="tab" aria-selected="false" data-scope="all">Everyone</button>
+            <button role="radio" aria-checked="true" data-scope="party">My party</button>
+            <button role="radio" aria-checked="false" data-scope="mine">Just me</button>
+            <button role="radio" aria-checked="false" data-scope="all">Everyone</button>
           </div>
         </div>
         <div id="results-body"></div>
@@ -246,11 +221,36 @@
     </section>
 
   </main>
+
+  <!-- ============================== tab bar ============================== -->
+  <nav class="tabbar material" role="tablist" aria-label="Sections">
+    <button role="tab" id="tab-map" aria-controls="view-map" aria-selected="true" data-view="map">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3 3 5.5v15L9 18l6 3 6-2.5v-15L15 6 9 3Z"/><path d="M9 3v15M15 6v15"/></svg>
+      <span>Stops</span>
+    </button>
+    <button role="tab" id="tab-route" aria-controls="view-route" aria-selected="false" data-view="route">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="5" r="2.5"/><path d="M8.5 19H15a3.5 3.5 0 0 0 0-7H9a3.5 3.5 0 0 1 0-7h6.5"/></svg>
+      <span>Route</span>
+      <span class="tabbar__count" id="route-count" hidden></span>
+    </button>
+    <button role="tab" id="tab-score" aria-controls="view-score" aria-selected="false" data-view="score">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5 14.6 9l6 .9-4.3 4.2 1 6-5.3-2.8L6.7 20l1-6L3.4 9.9 9.4 9 12 3.5Z"/></svg>
+      <span>Score</span>
+    </button>
+    <button role="tab" id="tab-results" aria-controls="view-results" aria-selected="false" data-view="results">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+      <span>Results</span>
+    </button>
+    <button role="tab" id="tab-settings" aria-controls="view-settings" aria-selected="false" data-view="settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1A1.6 1.6 0 0 0 9 19.4a1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1A1.6 1.6 0 0 0 4.6 9a1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H9a1.6 1.6 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V9a1.6 1.6 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1Z"/></svg>
+      <span>Setup</span>
+    </button>
+  </nav>
 </div>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script src="vendor/leaflet/leaflet.js"></script>
-<script type="module" src="assets/js/app.js?v=a6c8cb52"></script>
+<script type="module" src="assets/js/app.js?v=327f9624"></script>
 </body>
 </html>

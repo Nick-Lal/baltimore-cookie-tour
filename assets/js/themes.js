@@ -92,13 +92,37 @@ export function renderThemePicker(container) {
         <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.4"
              stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5l4 4 8-9"/></svg>
       </span>`;
-    btn.addEventListener('click', () => {
-      applyTheme(theme.id);
-      grid.querySelectorAll('.theme-card').forEach((el) =>
-        el.setAttribute('aria-checked', String(el.dataset.theme === theme.id)));
-    });
+    btn.tabIndex = theme.id === currentTheme() ? 0 : -1;
+    btn.addEventListener('click', () => select(theme.id));
     grid.appendChild(btn);
   }
+
+  function select(id, focus = false) {
+    applyTheme(id);
+    for (const card of grid.querySelectorAll('.theme-card')) {
+      const on = card.dataset.theme === id;
+      card.setAttribute('aria-checked', String(on));
+      card.tabIndex = on ? 0 : -1;
+      if (on && focus) card.focus();
+    }
+  }
+
+  /* One tab stop for the whole group, arrows to move between options, which is
+     what a radiogroup is supposed to do. Ten sequential tab stops is not. */
+  grid.addEventListener('keydown', (e) => {
+    const keys = ['ArrowRight', 'ArrowDown', 'ArrowLeft', 'ArrowUp', 'Home', 'End'];
+    if (!keys.includes(e.key)) return;
+    e.preventDefault();
+    const ids = THEMES.map((t) => t.id);
+    const at = ids.indexOf(currentTheme());
+    let next;
+    if (e.key === 'Home') next = 0;
+    else if (e.key === 'End') next = ids.length - 1;
+    else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next = (at + 1) % ids.length;
+    else next = (at - 1 + ids.length) % ids.length;
+    select(ids[next], true);
+  });
+
   container.appendChild(grid);
   return grid;
 }

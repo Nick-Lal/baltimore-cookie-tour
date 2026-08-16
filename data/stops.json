@@ -12,10 +12,10 @@
   },
   "city": { "name": "Baltimore, MD", "lat": 39.2987, "lng": -76.6089 },
   "clusters": [
-    { "id": "hampden", "label": "Hampden", "blurb": "Chestnut Avenue is the densest cookie block in the city." },
+    { "id": "hampden", "label": "Hampden", "blurb": "Two scratch bakeries 225 metres apart on Chestnut Avenue." },
     { "id": "north-central", "label": "Remington & Charles Village", "blurb": "The Howard Street corridor, plus the only stop open past midnight." },
     { "id": "central", "label": "Mount Vernon & downtown", "blurb": "Antique Row and the old downtown pastry houses." },
-    { "id": "harbor-east", "label": "Little Italy & Harbor East", "blurb": "Two serious bakeries about 700 metres apart." },
+    { "id": "harbor-east", "label": "Little Italy & Harbor East", "blurb": "Two serious bakeries three hundred metres apart." },
     { "id": "fells-point", "label": "Fells Point", "blurb": "Waterfront, and the best place on the list to sit down." },
     { "id": "east", "label": "Canton & Highlandtown", "blurb": "O'Donnell Square and the longest bakery hours here." },
     { "id": "federal-hill", "label": "Federal Hill", "blurb": "South of the harbour, afternoons only." }
@@ -266,7 +266,7 @@
       "url": "https://kneadsbakeshop.com/",
       "phone": "(410) 220-0907",
       "signature": "Chocolate chip chunk",
-      "blurb": "An artisan bakeshop and cafe doing handcrafted breads and a proper cafe menu, open seven days from 7 to 5. That makes it the most reliable stop here: no rotating list, no early close, chocolate chip on the counter every day. Seven hundred metres from Ovenbird's Little Italy shop, so the two make an easy back to back comparison.",
+      "blurb": "An artisan bakeshop and cafe doing handcrafted breads and a proper cafe menu, open seven days from 7 to 5. That makes it the most reliable stop here: no rotating list, no early close, chocolate chip on the counter every day. Three hundred metres from Ovenbird's Little Italy shop, so the two make an easy back to back comparison.",
       "hours": [
         { "open": "07:00", "close": "17:00" },
         { "open": "07:00", "close": "17:00" },

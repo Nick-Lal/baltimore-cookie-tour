@@ -486,7 +486,9 @@ grant execute on function public.my_party_ids()   to authenticated;
 --    hour per IP. The default is generous; 30 is plenty for a cookie tour.
 --
 -- 5. Copy config/supabase.example.json to config/supabase.json and fill in
---    your project URL and anon key. That file is gitignored by default, so
---    decide deliberately whether to commit it. Committing it is fine: the
---    anon key is public by design and RLS is what protects the data.
+--    your project URL and anon key. COMMIT that file. GitHub Pages serves
+--    what is in the repo, so an ignored config file means the deployed site
+--    never sees it and silently stays on device-only storage. Committing it is
+--    safe: the anon key is public by design and RLS is what protects the data.
+--    The key that must never be committed is the service role key.
 -- ===========================================================================

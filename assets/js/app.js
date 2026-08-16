@@ -1,15 +1,15 @@
 /* Boot: load data, wire the shell, hand off to the views. */
 
-import { initTheme, applyTheme } from './themes.js?v=a6c8cb52';
-import { toast } from './lib/dom.js?v=a6c8cb52';
-import { state, emit, subscribe, readHash } from './lib/state.js?v=a6c8cb52';
-import { createStore } from './lib/storage.js?v=a6c8cb52';
-import { loadMatrix } from './lib/routing.js?v=a6c8cb52';
-import { initMap, initStopsView, renderStopList, renderMarkers, hideDetail, fitToStops } from './views/stops.js?v=a6c8cb52';
-import { initRouteView, rebuildRoute, render as renderRoute } from './views/route.js?v=a6c8cb52';
-import { initScoreView, render as renderScore } from './views/score.js?v=a6c8cb52';
-import { initResultsView, refresh as refreshResults } from './views/results.js?v=a6c8cb52';
-import { initSettingsView, render as renderSettings } from './views/settings.js?v=a6c8cb52';
+import { initTheme, applyTheme } from './themes.js?v=327f9624';
+import { toast } from './lib/dom.js?v=327f9624';
+import { state, emit, subscribe, readHash } from './lib/state.js?v=327f9624';
+import { createStore } from './lib/storage.js?v=327f9624';
+import { loadMatrix } from './lib/routing.js?v=327f9624';
+import { initMap, initStopsView, renderStopList, renderMarkers, hideDetail, fitToStops } from './views/stops.js?v=327f9624';
+import { initRouteView, rebuildRoute, render as renderRoute } from './views/route.js?v=327f9624';
+import { initScoreView, render as renderScore } from './views/score.js?v=327f9624';
+import { initResultsView, refresh as refreshResults } from './views/results.js?v=327f9624';
+import { initSettingsView, render as renderSettings } from './views/settings.js?v=327f9624';
 
 initTheme();
 
@@ -77,9 +77,13 @@ function initSheet() {
   let lastT = 0;
   let velocity = 0;
 
+  // Measured against the space the sheet can actually occupy: the viewport
+  // less the tab bar it sits above. Using the wrong box here is how a sheet
+  // ends up taller than the room it has.
   const detents = () => {
-    const h = sheet.parentElement.clientHeight || window.innerHeight;
-    return [140, Math.round(h * 0.52), Math.round(h * 0.92)];
+    const bar = document.querySelector('.tabbar')?.getBoundingClientRect().height ?? 0;
+    const h = Math.max(240, window.innerHeight - bar);
+    return [140, Math.round(h * 0.5), Math.round(h)];
   };
 
   function apply(px, animate = true) {

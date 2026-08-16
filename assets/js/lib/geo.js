@@ -55,8 +55,10 @@ export function decodePolyline(str, precision = 6) {
  * Order stops to shorten the tour: nearest neighbour from a fixed start,
  * then 2-opt until no swap improves it. At thirteen stops this runs in well
  * under a millisecond and lands on the optimal order or within a hair of it.
- * Uses straight-line distance, which is the right cost for ordering even
- * though the legs themselves get routed on the real street network.
+ * The caller passes a cost function backed by the committed street-network
+ * matrix, so the ordering is done on real walking distances rather than on
+ * how the crow flies. Straight-line distance is the fallback when no cost
+ * function is supplied.
  */
 export function optimiseOrder(stops, { fixStart = true, cost = null } = {}) {
   if (stops.length < 3) return stops.slice();

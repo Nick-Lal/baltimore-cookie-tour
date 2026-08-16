@@ -1,6 +1,6 @@
 # Baltimore chocolate chip cookie research
 
-Compiled 16 August 2026. Thirteen stops, all inside city limits, all geocoded against
+Compiled 16 August 2026. Fourteen stops, all inside city limits, all geocoded against
 OpenStreetMap's Nominatim service. Addresses and hours come from the businesses' own sites
 where they publish them, and from Yelp or Toast ordering pages where they don't.
 
@@ -43,7 +43,7 @@ rather than a two minute counter visit.
 
 **Common Ground** — 3543 Chestnut Ave, 21211 — 39.3309, -76.6290 — *Confirmed*
 
-A worker cooperative café a hundred metres up from Harmony, baking its own cookies, scones and
+A worker cooperative café 225 metres up Chestnut Avenue from Harmony, baking its own cookies, scones and
 muffins from scratch every morning. Less precious than the pastry shops on this list and
 cheaper than all of them, which makes it a useful test of whether technique or plain freshness
 is doing the work. Open 7am to 3pm, closed Wednesdays, which catches people out.
@@ -91,7 +91,7 @@ Monday through Saturday, 8am to 3pm Sunday.
 
 An artisan bakeshop and café doing handcrafted breads and a proper lunch menu, open seven days
 a week from 7am to 5pm. That makes it the most reliable stop on this list: no rotating daily
-list, no early close, chocolate chip and chocolate chip chunk on the counter every day. Seven
+list, no early close, chocolate chip and chocolate chip chunk on the counter every day. Three
 hundred metres from Ovenbird's Little Italy shop, which makes the two an easy back to back
 comparison of an American bakeshop against a sourdough house.
 
@@ -106,7 +106,7 @@ to actually talk instead of eating standing up.
 
 Macarons are the specialty and the reason the place outgrew its old Fleet Street shop and
 moved into a much larger waterfront space in 2024. It sells cookies, including in gift boxes,
-but a chocolate chip cookie is not the headline. Two hundred meters from Pitango, so there's
+but a chocolate chip cookie is not the headline. Two hundred metres from Pitango, so there is
 no real cost to checking both.
 
 ### East cluster: Canton and Highlandtown
@@ -172,11 +172,14 @@ the confidence ratings as a starting point rather than a promise.
 The stops fall into seven clusters. Within a cluster everything is a short walk. Between
 clusters you need wheels, and that is where the transport picker earns its keep.
 
-Chestnut Avenue in Hampden is the densest block: Harmony and Common Ground are about 100 metres
-apart. Fells Point is the second densest, with Pitango and Sacré Sucré about 200 metres apart,
-and Harbor East is the third, with Ovenbird and Kneads about 700 metres apart. The longest gap
-between any two clusters is Hampden to Highlandtown, roughly 9 km, which is a 40 minute scooter
-ride and not a walk anyone should attempt on a date.
+Fells Point is the densest pair: Pitango and Sacré Sucré are 200 metres apart on the walking
+network. Chestnut Avenue in Hampden is next, with Harmony and Common Ground 225 metres apart,
+then Harbor East, where Ovenbird and Kneads are 300 metres apart. The longest gap between any
+two clusters is Hampden to Highlandtown, just under 10 km, which is a 40 minute scooter ride and
+not a walk anyone should attempt on a date.
+
+Every figure here comes from the committed walking matrix in `data/matrix.json` rather than from
+eyeballing a map.
 
 Three hard constraints shape any route. Aunt Kelly's closes at 5 and shuts Sunday and Monday.
 Zoe's does not open until half twelve. Common Ground closes on Wednesdays. A tour that includes

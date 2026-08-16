@@ -1,8 +1,8 @@
 /* Results: rankings, factor breakdowns, disagreements and movement over time. */
 
-import { el, clear, wireSegmented } from '../lib/dom.js?v=a6c8cb52';
-import { state, subscribe, stopById } from '../lib/state.js?v=a6c8cb52';
-import { FACTORS } from '../lib/storage.js?v=a6c8cb52';
+import { el, clear, wireSegmented } from '../lib/dom.js?v=327f9624';
+import { state, subscribe, stopById } from '../lib/state.js?v=327f9624';
+import { FACTORS } from '../lib/storage.js?v=327f9624';
 
 const mean = (xs) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0);
 
@@ -27,7 +27,7 @@ function rank(ratings, itemType) {
   if (!rows.length) return { items: [], global: 0 };
 
   const global = mean(rows.map((r) => Number(r.total_score)));
-  const prior = state.rubric?.ranking?.priorWeight ?? 3;
+  const prior = state.rubric?.ranking?.priorWeight ?? 1.5;
   const byItem = new Map();
 
   for (const r of rows) {
@@ -81,7 +81,7 @@ function factorBars(item, itemType) {
 
 function rankRow(item, i, itemType) {
   const { stop, item: itemName } = labelFor(item.stopId, item.itemId);
-  const thin = item.n < (state.rubric?.ranking?.minScoresForBadge ?? 3);
+  const thin = item.n < (state.rubric?.ranking?.minScoresForBadge ?? 2);
 
   const details = el('div', { hidden: true });
   const row = el('button', {

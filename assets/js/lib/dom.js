@@ -89,9 +89,12 @@ export function toast(message) {
 }
 
 /** Slide a segmented control's indicator under the selected button. */
+const selectedIn = (root) =>
+  root.querySelector('[aria-checked="true"], [aria-selected="true"]');
+
 export function syncSegmented(root) {
   const thumb = root.querySelector('.segmented__thumb');
-  const active = root.querySelector('[aria-selected="true"]');
+  const active = selectedIn(root);
   if (!thumb || !active) return;
   thumb.style.width = `${active.offsetWidth}px`;
   thumb.style.transform = `translateX(${active.offsetLeft - 2}px)`;
@@ -99,10 +102,10 @@ export function syncSegmented(root) {
 
 export function wireSegmented(root, onChange) {
   root.addEventListener('click', (e) => {
-    const btn = e.target.closest('button[role="tab"], button[data-filter], button[data-scope]');
+    const btn = e.target.closest('button[data-filter], button[data-scope]');
     if (!btn || !root.contains(btn)) return;
     root.querySelectorAll('button').forEach((b) =>
-      b.setAttribute('aria-selected', String(b === btn)));
+      b.setAttribute('aria-checked', String(b === btn)));
     syncSegmented(root);
     onChange(btn.dataset);
   });

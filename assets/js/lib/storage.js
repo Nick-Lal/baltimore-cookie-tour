@@ -228,10 +228,18 @@ export class LocalAdapter {
     return this._events.slice();
   }
 
+  /* Names are resolved at read time from the profile list rather than trusted
+     from the snapshot written onto each event, so renaming a taster does not
+     leave old scores attributed to the old name. */
+  _named(e) {
+    const p = this._profiles.find((x) => x.id === e.taster_id);
+    return p ? { ...e, taster_name: p.display_name, party_code: p.party_code } : e;
+  }
+
   /** Newest event per person per item. */
   async listRatings({ scope = 'all' } = {}) {
     const latest = new Map();
-    for (const e of this._scoped(scope)) {
+    for (const e of this._scoped(scope).map((x) => this._named(x))) {
       const k = `${e.taster_id}|${e.item_key}`;
       const prev = latest.get(k);
       if (!prev || e.created_at > prev.created_at) latest.set(k, e);
@@ -240,7 +248,9 @@ export class LocalAdapter {
   }
 
   async listHistory({ scope = 'all' } = {}) {
-    return this._scoped(scope).slice().sort((a, b) => a.created_at.localeCompare(b.created_at));
+    return this._scoped(scope)
+      .map((e) => this._named(e))
+      .sort((a, b) => a.created_at.localeCompare(b.created_at));
   }
 
   async exportAll() {
@@ -256,9 +266,26 @@ export class LocalAdapter {
     if (!payload || !Array.isArray(payload.events)) throw new Error('That file is not a cookie tour export.');
     const seen = new Set(this._events.map((e) => e.id));
     let added = 0;
+    let skipped = 0;
     for (const e of payload.events) {
-      if (e?.id && !seen.has(e.id)) { this._events.push(e); seen.add(e.id); added++; }
+      // A file off disk is untrusted input like any other. Anything that would
+      // not survive being typed into the form does not get in.
+      if (!e?.id || seen.has(e.id)) { skipped++; continue; }
+      const type = e.item_type === 'other' ? 'other' : 'cookie';
+      const scores = Object.fromEntries(FACTORS[type].map((f) => [f, e[f]]));
+      const problems = validateRating({
+        stopId: e.stop_id, itemId: e.item_id, itemType: type,
+        scores, pricePaid: e.price_paid, notes: e.notes,
+      });
+      if (problems.length) { skipped++; continue; }
+      e.item_type = type;
+      e.total_score = totalScore(scores, type);
+      e.recipe_score = recipeScore(scores, type);
+      this._events.push(e);
+      seen.add(e.id);
+      added++;
     }
+    if (skipped) console.warn(`Skipped ${skipped} events that failed validation.`);
     for (const p of payload.profiles ?? []) {
       if (p?.id && !this._profiles.some((x) => x.id === p.id)) this._profiles.push(p);
     }
@@ -466,11 +493,17 @@ export class SupabaseAdapter {
   }
 
   async exportAll() {
+    // rating_feed carries the factor columns; rating_history does not. Exporting
+    // from history would produce a file that looks complete and contains no
+    // actual scores.
+    const current = await this.listRatings({ scope: 'mine' });
+    const history = await this.listHistory({ scope: 'mine' });
     return {
       exported: new Date().toISOString(),
       rubricVersion: RUBRIC_VERSION,
       profiles: this._taster ? [this._taster] : [],
-      events: await this.listHistory({ scope: 'mine' }),
+      events: current,
+      history,
     };
   }
 
