@@ -161,6 +161,33 @@ likely cause rather than failing quietly.
 **Names are not verified**, so two people can pick the same one. That is a
 naming collision, not a security hole.
 
+### Keeping an identity
+
+An anonymous identity lives in one browser's storage, and iOS clears that after
+roughly a week without a visit, which would strand the scores already written.
+The Setup screen can attach an email to the *same* `auth.uid()` rather than
+creating a second account, so nothing is orphaned and the same scores can be
+picked up on another phone. Requesting a sign-in link for an unknown address
+deliberately refuses to create a user: an unknown address means a typo, and
+silently minting an empty second account is worse than an error.
+
+Supabase's built-in mail is rate limited to a couple of messages an hour on the
+free tier, which is plenty for this and worth knowing before you test it twice.
+
+## Working offline
+
+The tour happens outdoors on cellular, so offline is the normal case rather
+than the exception. A service worker caches the interface, the stop data, the
+rubric and the travel matrix, which means the whole app opens and routes with
+no signal at all; the committed travel matrix is what makes routing survive.
+Map tiles are cached as you see them, capped at 300. The database and the live
+routing service are never cached, because a stale score list is a lie about
+what was saved.
+
+The cache name carries the build hash, so each deploy retires the previous one.
+`?sw=off` unregisters the worker and clears every cache, which is the way out
+if a worker ever ships broken.
+
 All user-written text is rendered through `textContent`. There is no
 `innerHTML` path for user data anywhere in the codebase, which is the reason
 `assets/js/lib/dom.js` exists as a separate module.

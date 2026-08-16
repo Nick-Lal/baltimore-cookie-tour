@@ -295,6 +295,21 @@ export class LocalAdapter {
   }
 }
 
+
+
+/* A magic-link redirect returns a token but no user object. Reading the
+   unverified claims here is fine: it is our own token, and the database
+   re-derives auth.uid() from the signature on every request regardless. */
+function parseJwtUser(token) {
+  try {
+    const body = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+    const json = JSON.parse(decodeURIComponent(escape(atob(body))));
+    return { id: json.sub, email: json.email || null, is_anonymous: json.is_anonymous ?? false, role: json.role };
+  } catch {
+    return null;
+  }
+}
+
 /* --------------------------------------------------------------- supabase */
 
 export class SupabaseAdapter {
@@ -318,8 +333,16 @@ export class SupabaseAdapter {
   }
 
   async init() {
-    try { this.session = JSON.parse(localStorage.getItem(KEYS.session) || 'null'); }
-    catch { this.session = null; }
+    // A magic link comes back with tokens in the URL fragment. Consume it
+    // before anything else: minting a new anonymous identity first would
+    // strand the very scores the link exists to recover.
+    const returned = this._consumeAuthRedirect();
+    if (returned) this.session = returned;
+
+    if (!this.session) {
+      try { this.session = JSON.parse(localStorage.getItem(KEYS.session) || 'null'); }
+      catch { this.session = null; }
+    }
 
     if (this.session?.expires_at && this.session.expires_at * 1000 < Date.now() + 60_000) {
       await this._refresh().catch(() => { this.session = null; });
@@ -404,6 +427,74 @@ export class SupabaseAdapter {
       this._partyIds = [];
       this._partyMemberIds = [];
     }
+  }
+
+  /* --------------------------------------------------------------- email --
+   * An anonymous identity lives in one browser's storage, and iOS clears that
+   * after about a week without a visit. Linking an email upgrades the SAME
+   * auth.uid() in place rather than creating a second account, so scores
+   * already written stay yours and become reachable from another device.
+   */
+
+  get email() { return this.session?.user?.email || null; }
+  get isAnonymous() { return this.session?.user?.is_anonymous !== false; }
+
+  _consumeAuthRedirect() {
+    const raw = location.hash.startsWith('#') ? location.hash.slice(1) : '';
+    if (!raw.includes('access_token=')) return null;
+    const q = new URLSearchParams(raw);
+    const access_token = q.get('access_token');
+    if (!access_token) return null;
+
+    const expires_in = Number(q.get('expires_in') || 3600);
+    const session = {
+      access_token,
+      refresh_token: q.get('refresh_token'),
+      expires_in,
+      expires_at: Math.floor(Date.now() / 1000) + expires_in,
+      user: parseJwtUser(access_token),
+    };
+    try { localStorage.setItem(KEYS.session, JSON.stringify(session)); } catch { /* ignore */ }
+    // Strip the tokens out of the address bar so they are not left in history
+    // or pasted into a shared route link.
+    history.replaceState(null, '', location.pathname + location.search);
+    return session;
+  }
+
+  async _auth(path, { method = 'POST', body, authed = false } = {}) {
+    const headers = { apikey: this.anonKey, 'Content-Type': 'application/json' };
+    if (authed) headers.Authorization = `Bearer ${this.session?.access_token}`;
+    const res = await fetch(`${this.url}/auth/v1/${path}`, {
+      method, headers, body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      const text = await res.text();
+      let msg = text.slice(0, 200);
+      try { const j = JSON.parse(text); msg = j.msg ?? j.message ?? j.error_description ?? msg; }
+      catch { /* keep raw */ }
+      throw new Error(msg);
+    }
+    return res.json().catch(() => null);
+  }
+
+  /** Attach an email to the current identity. Sends a confirmation link. */
+  async linkEmail(email) {
+    await this._auth('user', { method: 'PUT', authed: true, body: { email: String(email).trim() } });
+    return true;
+  }
+
+  /** Sign back in as an identity that already carries this email. */
+  async sendMagicLink(email) {
+    await this._auth('otp', {
+      body: {
+        email: String(email).trim(),
+        // Never create a new user here. An unknown address means a typo, and
+        // silently minting a second empty account is worse than an error.
+        create_user: false,
+        options: { email_redirect_to: location.origin + location.pathname },
+      },
+    });
+    return true;
   }
 
   async getTaster() { return this._taster; }

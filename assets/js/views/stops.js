@@ -1,9 +1,9 @@
 /* Map, stop list and stop detail. */
 
-import { el, icon, ICONS, clear, toast, wireSegmented, DAY_NAMES, prettyTime, money } from '../lib/dom.js?v=6fe1afa3';
-import { state, subscribe, emit, stopById, isPicked, togglePick } from '../lib/state.js?v=6fe1afa3';
-import { openAt } from '../lib/routing.js?v=6fe1afa3';
-import { boundsOf, haversineKm } from '../lib/geo.js?v=6fe1afa3';
+import { el, icon, ICONS, clear, toast, wireSegmented, DAY_NAMES, prettyTime, money } from '../lib/dom.js?v=32b96abd';
+import { state, subscribe, emit, stopById, isPicked, togglePick } from '../lib/state.js?v=32b96abd';
+import { openAt } from '../lib/routing.js?v=32b96abd';
+import { boundsOf, haversineKm } from '../lib/geo.js?v=32b96abd';
 
 export const CLUSTER_COLOURS = {
   hampden: '#E4572E',

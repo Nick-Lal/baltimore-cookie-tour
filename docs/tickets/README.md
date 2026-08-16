@@ -42,6 +42,12 @@ Both are fixed and verified on the deployed site.
 | T-09 | Copy pass | Done | Broke the site briefly. See below. |
 | T-10 | Deploy and final review | Done | Live at nick-lal.github.io/baltimore-cookie-tour. |
 | T-11 | Device QA and tap targets | Done | Added after the plan review. Every control measured at 375px; Leaflet's 30px zoom buttons and the 36px segmented control raised to 44. |
+| T-12 | Live database | Done | Schema, seed and anonymous sign-in on a real Supabase project. 23 attacks run against it with the public key; all rejected. |
+| T-13 | Security council | Done | Third council gate, against the live database. Caught a setup instruction that would have broken the site, and a verify script that could not run. |
+| T-14 | Offline and Add to Home Screen | Done | Manifest, generated icons, service worker. Verified by stopping the server and cold-reloading. |
+| T-15 | iOS hardening | Done | svh sizing, tap highlight, overscroll, 16px input floor. Checked at 320, 375 and 430 wide; the filter control overflowed at 320. |
+| T-16 | Near-live sync and agreement analysis | Done | Results refresh while visible; per-factor inter-rater gaps from paired scores. |
+| T-17 | Email identity upgrade | Done | Links an email to the same auth.uid() so scores survive storage eviction. |
 
 ## What went wrong, and what it changed
 

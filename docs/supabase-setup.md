@@ -96,6 +96,16 @@ key, which bypasses every policy.
 Reload the site. Setup should now say "Synced database" instead of "This device
 only".
 
+## 5b. Set the URLs, or magic links will not come back
+
+Authentication, then URL Configuration.
+
+- **Site URL**: `https://nick-lal.github.io/baltimore-cookie-tour/`
+- **Redirect URLs**: add `https://nick-lal.github.io/baltimore-cookie-tour/**`
+
+Without these, the "Keep your scores" email link lands on localhost and the
+sign-in silently fails. Both are already set on the live project.
+
 ## 6. Check it actually works
 
 Worth doing properly rather than assuming:
