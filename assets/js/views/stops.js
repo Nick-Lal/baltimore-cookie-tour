@@ -3,7 +3,7 @@
 import { el, icon, ICONS, clear, toast, wireSegmented, DAY_NAMES, prettyTime, money } from '../lib/dom.js';
 import { state, subscribe, emit, stopById, isPicked, togglePick } from '../lib/state.js';
 import { openAt } from '../lib/routing.js';
-import { boundsOf } from '../lib/geo.js';
+import { boundsOf, haversineKm } from '../lib/geo.js';
 
 export const CLUSTER_COLOURS = {
   hampden: '#E4572E',
@@ -115,6 +115,62 @@ export function drawRoute(legs) {
     })
   );
   routeLayer = L.layerGroup(groups).addTo(map);
+}
+
+/*
+ * Opt-in locate-me. Nothing asks for a location until the button is pressed,
+ * and if permission is refused the control simply disappears rather than
+ * leaving a dead button or an error on screen.
+ */
+let meMarker = null;
+let meCircle = null;
+
+export function locateMe(button) {
+  if (!navigator.geolocation) {
+    button?.remove();
+    return;
+  }
+  button?.classList.add('is-busy');
+  navigator.geolocation.getCurrentPosition(
+    ({ coords }) => {
+      button?.classList.remove('is-busy');
+      const here = [coords.latitude, coords.longitude];
+      if (meMarker) map.removeLayer(meMarker);
+      if (meCircle) map.removeLayer(meCircle);
+
+      // Leaflet writes SVG presentation attributes, so resolve the token to a
+      // real colour rather than handing it a var() reference.
+      const tint = getComputedStyle(document.documentElement)
+        .getPropertyValue('--tint').trim() || '#b4541f';
+      meCircle = L.circle(here, {
+        radius: Math.max(20, coords.accuracy || 40),
+        color: tint, weight: 1, fillOpacity: 0.12,
+      }).addTo(map);
+      meMarker = L.marker(here, {
+        icon: L.divIcon({ html: '<div class="pin pin--me"></div>', className: '', iconSize: [18, 18], iconAnchor: [9, 9] }),
+        title: 'Roughly where you are',
+        alt: 'Roughly where you are',
+        keyboard: false,
+      }).addTo(map);
+
+      const nearest = state.stops
+        .map((s) => ({ s, km: haversineKm({ lat: coords.latitude, lng: coords.longitude }, s) }))
+        .sort((a, b) => a.km - b.km)[0];
+      map.setView(here, 15, { animate: true });
+      if (nearest) {
+        const mins = Math.round((nearest.km / 4.8) * 60);
+        toast(`Nearest is ${nearest.s.name}, about ${mins} min on foot.`);
+      }
+    },
+    (err) => {
+      button?.classList.remove('is-busy');
+      toast(err.code === err.PERMISSION_DENIED
+        ? 'No location, no problem. Everything else still works.'
+        : 'Could not work out where you are.');
+      if (err.code === err.PERMISSION_DENIED) button?.remove();
+    },
+    { enableHighAccuracy: true, timeout: 10_000, maximumAge: 60_000 }
+  );
 }
 
 export function fitToStops(stops) {
@@ -359,6 +415,9 @@ export function initStopsView() {
       `${total} places in Baltimore worth arguing about, ${confirmed} of them with a chocolate ` +
       `chip cookie confirmed on the shop's own menu. Tap one to read it, add it to build a route.`;
   }
+
+  const locateBtn = document.getElementById('locate-me');
+  locateBtn?.addEventListener('click', () => locateMe(locateBtn));
 
   wireSegmented(document.getElementById('map-filter'), ({ filter }) => {
     state.filter = filter;

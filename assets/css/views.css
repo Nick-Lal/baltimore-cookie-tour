@@ -52,7 +52,20 @@
   padding: calc(var(--sp-3) + env(safe-area-inset-top)) var(--margin) 0;
   pointer-events: none;
 }
-.map-chrome__row { pointer-events: auto; }
+.map-chrome__row { pointer-events: auto; display: flex; gap: var(--sp-2); align-items: flex-start; }
+.map-chrome__row .segmented { flex: 1; min-width: 0; }
+.locate-btn {
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-card);
+  color: var(--tint);
+}
+.locate-btn.is-busy { opacity: 0.5; pointer-events: none; }
+.pin--me {
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--tint); border: 3px solid #fff;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.25), 0 2px 6px rgba(0,0,0,0.35);
+}
 .map-chrome .segmented { box-shadow: var(--shadow-card); }
 .map-chrome .segmented__thumb { background: var(--tint); }
 .map-chrome .segmented button[aria-selected="true"] { color: var(--tint-ink); }
