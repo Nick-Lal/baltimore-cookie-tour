@@ -8,6 +8,24 @@
 
 const listeners = new Set();
 
+const PICKS_KEY = 'cookietour.picks';
+
+/*
+ * The route people asked for by name: an east to west waterfront crawl from
+ * Canton down through Fells Point to Harbor East. 3.4 km of walking in total,
+ * and two of the legs are under 350 metres.
+ *
+ * Seeded only on a genuinely first visit. Clearing your stops sticks, because
+ * an app that keeps re-adding what you just removed is infuriating.
+ */
+export const DEFAULT_ROUTE = [
+  'cafe-dear-leon',
+  'sacre-sucre',
+  'pitango-bakery',
+  'kneads-bakeshop',
+  'ovenbird-little-italy',
+];
+
 export const state = {
   stops: [],
   clusters: [],
@@ -58,6 +76,7 @@ export function togglePick(id) {
     state.picked.push(id);
     state.legModes = {};
   }
+  savePicks();
   writeHash();
   emit('picked');
 }
@@ -65,6 +84,7 @@ export function togglePick(id) {
 export function setOrder(ids) {
   state.picked = ids.slice();
   state.legModes = {};
+  savePicks();
   writeHash();
   emit('picked');
 }
@@ -74,6 +94,7 @@ export function moveStop(from, to) {
   const [id] = state.picked.splice(from, 1);
   state.picked.splice(to, 0, id);
   state.legModes = {};
+  savePicks();
   writeHash();
   emit('picked');
 }
@@ -81,6 +102,7 @@ export function moveStop(from, to) {
 export function clearPicks() {
   state.picked = [];
   state.legModes = {};
+  savePicks();
   writeHash();
   emit('picked');
 }
@@ -90,6 +112,28 @@ export function clearPicks() {
 /* Stops are referenced by index into stops.json so a shared link stays short.
    An unknown index is dropped rather than throwing, so an old link opening
    against newer data degrades to the stops it can still resolve. */
+/* Picks used to live only in the URL, so a reload lost the whole route. */
+function savePicks() {
+  try {
+    localStorage.setItem(PICKS_KEY, JSON.stringify({ picked: state.picked, seeded: true }));
+  } catch { /* private mode */ }
+}
+
+export function restorePicks() {
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem(PICKS_KEY) || 'null'); } catch { /* ignore */ }
+
+  if (saved && Array.isArray(saved.picked)) {
+    const known = new Set(state.stops.map((s) => s.id));
+    state.picked = saved.picked.filter((id) => known.has(id));
+    return 'restored';
+  }
+
+  state.picked = DEFAULT_ROUTE.filter((id) => state.stops.some((s) => s.id === id));
+  savePicks();
+  return 'seeded';
+}
+
 export function writeHash() {
   const idx = state.picked
     .map((id) => state.stops.findIndex((s) => s.id === id))

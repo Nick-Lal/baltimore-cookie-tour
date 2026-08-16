@@ -399,6 +399,16 @@ h1, h2, h3, .display {
 .leaflet-control-zoom { margin-bottom: calc(var(--sp-4) + env(safe-area-inset-bottom)) !important; }
 
 /* pin */
+/* A transparent 44pt square around each pin. Without it the tap target is the
+   30px circle, which is under the HIG floor and misses constantly on a phone. */
+.pin-hit {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
 .pin {
   width: 30px;
   height: 30px;

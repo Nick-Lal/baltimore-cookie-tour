@@ -1,15 +1,15 @@
 /* Boot: load data, wire the shell, hand off to the views. */
 
-import { initTheme, applyTheme } from './themes.js?v=32b96abd';
-import { toast } from './lib/dom.js?v=32b96abd';
-import { state, emit, subscribe, readHash } from './lib/state.js?v=32b96abd';
-import { createStore } from './lib/storage.js?v=32b96abd';
-import { loadMatrix } from './lib/routing.js?v=32b96abd';
-import { initMap, initStopsView, renderStopList, renderMarkers, hideDetail, fitToStops } from './views/stops.js?v=32b96abd';
-import { initRouteView, rebuildRoute, render as renderRoute } from './views/route.js?v=32b96abd';
-import { initScoreView, render as renderScore } from './views/score.js?v=32b96abd';
-import { initResultsView, refresh as refreshResults } from './views/results.js?v=32b96abd';
-import { initSettingsView, render as renderSettings } from './views/settings.js?v=32b96abd';
+import { initTheme, applyTheme } from './themes.js?v=8840a507';
+import { toast } from './lib/dom.js?v=8840a507';
+import { state, emit, subscribe, readHash, restorePicks } from './lib/state.js?v=8840a507';
+import { createStore } from './lib/storage.js?v=8840a507';
+import { loadMatrix } from './lib/routing.js?v=8840a507';
+import { initMap, initStopsView, renderStopList, renderMarkers, hideDetail, fitToStops, renderPicker, initPickerView } from './views/stops.js?v=8840a507';
+import { initRouteView, rebuildRoute, render as renderRoute } from './views/route.js?v=8840a507';
+import { initScoreView, render as renderScore } from './views/score.js?v=8840a507';
+import { initResultsView, refresh as refreshResults } from './views/results.js?v=8840a507';
+import { initSettingsView, render as renderSettings } from './views/settings.js?v=8840a507';
 
 initTheme();
 
@@ -28,6 +28,7 @@ function initTabs() {
       view.hidden = !on;
       view.classList.toggle('is-active', on);
     }
+    if (name === 'pick') renderPicker();
     if (name === 'route') renderRoute();
     if (name === 'score') renderScore();
     if (name === 'results') refreshResults();
@@ -271,6 +272,7 @@ async function boot() {
 
   initMap();
   initStopsView();
+  initPickerView();
   initRouteView();
   initScoreView();
   initResultsView();
@@ -281,10 +283,18 @@ async function boot() {
   fitToStops(state.stops);
   renderSettings();
 
-  // A shared link opens straight on the route it describes.
-  if (readHash()) {
-    emit('picked');
-    await rebuildRoute();
+  // A shared link wins over anything stored. Otherwise restore the last route,
+  // or seed the waterfront five on a genuinely first visit.
+  const shared = readHash();
+  if (!shared) restorePicks();
+
+  // Always announce the selection, shared or restored. Without this the route
+  // only ever built after you changed a pick, so a restored route sat on
+  // "Working it out" forever.
+  emit('picked');
+  await rebuildRoute();
+
+  if (shared) {
     show('route');
     toast('Opened a shared route.');
   }

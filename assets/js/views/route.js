@@ -1,13 +1,13 @@
 /* Route building: order, modes, timing and the itinerary. */
 
-import { el, icon, ICONS, clear, toast, money } from '../lib/dom.js?v=32b96abd';
-import { state, subscribe, pickedStops, moveStop, setOrder, togglePick, shareUrl } from '../lib/state.js?v=32b96abd';
+import { el, icon, ICONS, clear, toast, money } from '../lib/dom.js?v=8840a507';
+import { state, subscribe, pickedStops, moveStop, setOrder, togglePick, shareUrl } from '../lib/state.js?v=8840a507';
 import {
   MODES, routeItinerary, itinerarySummary, suggestMode, modeOptionsFor,
   legAdvisory, schedule, matrixKm, SCOOTER_PRICING,
-} from '../lib/routing.js?v=32b96abd';
-import { optimiseOrder, formatKm, formatMins } from '../lib/geo.js?v=32b96abd';
-import { drawRoute, fitToStops, CLUSTER_COLOURS } from './stops.js?v=32b96abd';
+} from '../lib/routing.js?v=8840a507';
+import { optimiseOrder, formatKm, formatMins } from '../lib/geo.js?v=8840a507';
+import { drawRoute, fitToStops, CLUSTER_COLOURS } from './stops.js?v=8840a507';
 
 let startAt = defaultStart();
 let dwellMin = 20;
@@ -150,7 +150,7 @@ function legCard(leg, i, stops) {
     el('div', { class: 'leg__card' }, [
       el('div', { class: 'leg__summary footnote secondary' }, [
         leg
-          ? `${formatMins(leg.minutes)} by ${MODES[leg.mode].label.toLowerCase()}, ${formatKm(leg.km)}`
+          ? `${formatMins(leg.minutes)} ${MODES[leg.mode].verb}, ${formatKm(leg.km)}`
           : 'Working it out…',
         leg?.estimated ? el('span', { class: 'badge', text: 'estimate' }) : null,
       ]),

@@ -17,7 +17,7 @@
  * as though it were measured.
  */
 
-import { haversineKm, decodePolyline } from './geo.js?v=32b96abd';
+import { haversineKm, decodePolyline } from './geo.js?v=8840a507';
 
 /*
  * A 14x14 street-network matrix for both profiles is committed to the repo,
@@ -66,6 +66,7 @@ export const MODES = {
   walk: {
     id: 'walk',
     label: 'Walk',
+    verb: 'on foot',
     costing: 'pedestrian',
     timeFactor: 1,
     overheadMin: 0,
@@ -78,6 +79,7 @@ export const MODES = {
   scooter: {
     id: 'scooter',
     label: 'Scooter',
+    verb: 'by scooter',
     costing: 'bicycle',
     timeFactor: 1.05,
     overheadMin: 2,
@@ -90,6 +92,7 @@ export const MODES = {
   car: {
     id: 'car',
     label: 'Car',
+    verb: 'by car',
     costing: 'auto',
     timeFactor: 1,
     overheadMin: 5,

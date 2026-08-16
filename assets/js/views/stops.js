@@ -1,9 +1,9 @@
 /* Map, stop list and stop detail. */
 
-import { el, icon, ICONS, clear, toast, wireSegmented, DAY_NAMES, prettyTime, money } from '../lib/dom.js?v=32b96abd';
-import { state, subscribe, emit, stopById, isPicked, togglePick } from '../lib/state.js?v=32b96abd';
-import { openAt } from '../lib/routing.js?v=32b96abd';
-import { boundsOf, haversineKm } from '../lib/geo.js?v=32b96abd';
+import { el, icon, ICONS, clear, toast, wireSegmented, DAY_NAMES, prettyTime, money } from '../lib/dom.js?v=8840a507';
+import { state, subscribe, emit, stopById, isPicked, togglePick, setOrder, clearPicks, DEFAULT_ROUTE } from '../lib/state.js?v=8840a507';
+import { openAt } from '../lib/routing.js?v=8840a507';
+import { boundsOf, haversineKm } from '../lib/geo.js?v=8840a507';
 
 export const CLUSTER_COLOURS = {
   hampden: '#E4572E',
@@ -64,9 +64,12 @@ function pinFor(stop) {
   const colour = CLUSTER_COLOURS[stop.cluster] ?? '#666';
   const label = pickedAt >= 0 ? String(pickedAt + 1) : '';
   const cls = ['pin', pickedAt >= 0 ? 'pin--selected' : ''].filter(Boolean).join(' ');
+  // The visible pin stays 30px, but the marker itself is 44 so there is a real
+  // finger-sized target around it. At 30 these were genuinely hard to hit on a
+  // phone, which is most of why the map felt unresponsive.
   const html =
-    `<div class="${cls}" style="background:${colour}">${label}</div>`;
-  return L.divIcon({ html, className: '', iconSize: [30, 30], iconAnchor: [15, 15] });
+    `<div class="pin-hit"><div class="${cls}" style="background:${colour}">${label}</div></div>`;
+  return L.divIcon({ html, className: '', iconSize: [44, 44], iconAnchor: [22, 22] });
 }
 
 export function renderMarkers() {
@@ -433,5 +436,95 @@ export function initStopsView() {
       renderMarkers();
       if (state.detailStopId) showDetail(state.detailStopId);
     }
+  });
+}
+
+/* ------------------------------------------------------------------ picker */
+
+/*
+ * A list-first way to choose stops.
+ *
+ * Map pins are a poor primary control on a phone even at a proper 44pt: you
+ * are outdoors, one-handed, and the pins overlap wherever the cafes cluster,
+ * which on this tour is exactly where the good ones are. Two pairs sit 200 and
+ * 300 metres apart and land almost on top of each other at normal zoom. So the
+ * whole row is the target here, not a small plus button on the end of it.
+ */
+export function renderPicker() {
+  const host = document.getElementById('pick-list');
+  const sub = document.getElementById('pick-sub');
+  if (!host) return;
+  clear(host);
+
+  const n = state.picked.length;
+  if (sub) {
+    sub.textContent = n === 0
+      ? 'Nothing picked. Tap a row to add it, or load the waterfront five.'
+      : `${n} picked, in the order you tapped them. Reorder them on the Route tab.`;
+  }
+
+  for (const cluster of state.clusters) {
+    const stops = state.stops.filter((s) => s.cluster === cluster.id);
+    if (!stops.length) continue;
+
+    host.append(el('section', { class: 'cluster' }, [
+      el('header', { class: 'cluster__head' }, [
+        el('div', { class: 'cluster__name', text: cluster.label }),
+        el('div', { class: 'cluster__blurb', text: cluster.blurb }),
+      ]),
+      el('div', { class: 'pick-group' }, stops.map((stop) => {
+        const at = state.picked.indexOf(stop.id);
+        const picked = at >= 0;
+
+        return el('button', {
+          class: `pick-row${picked ? ' is-picked' : ''}`,
+          type: 'button',
+          'aria-pressed': String(picked),
+          onclick: () => {
+            togglePick(stop.id);
+            toast(picked ? `Removed ${stop.name}` : `Added ${stop.name}`);
+          },
+        }, [
+          el('span', {
+            class: 'pick-row__num',
+            style: picked
+              ? { background: CLUSTER_COLOURS[stop.cluster] ?? '#666', color: '#fff', borderColor: 'transparent' }
+              : {},
+            'aria-hidden': 'true',
+          }, picked ? String(at + 1) : ''),
+          el('span', { class: 'pick-row__body' }, [
+            el('span', { class: 'pick-row__name' }, [
+              stop.name,
+              stop.branch ? el('span', { class: 'stop-row__branch', text: `  ${stop.branch}` }) : null,
+            ]),
+            el('span', { class: 'pick-row__sig', text: stop.signature }),
+            el('span', { class: 'stop-row__meta' }, [confidenceBadge(stop), openBadge(stop)]),
+          ]),
+          el('span', { class: 'pick-row__state' },
+            picked ? icon(ICONS.check, { size: 22, width: 2.4 }) : icon(ICONS.plus, { size: 22, width: 2.2 })),
+        ]);
+      })),
+    ]));
+  }
+
+  host.append(el('p', {
+    class: 'pad footnote tertiary',
+    style: { margin: 'var(--sp-5) 0 var(--sp-10)' },
+    text: 'Order is the order you tapped. Reordering, and the walking and scooter ' +
+          'times between each pair, are on the Route tab.',
+  }));
+}
+
+export function initPickerView() {
+  document.getElementById('pick-default')?.addEventListener('click', () => {
+    setOrder(DEFAULT_ROUTE.filter((id) => state.stops.some((s) => s.id === id)));
+    toast('Loaded the waterfront five.');
+  });
+  document.getElementById('pick-clear')?.addEventListener('click', () => {
+    clearPicks();
+    toast('Cleared.');
+  });
+  subscribe((reason) => {
+    if (reason === 'picked' && state.view === 'pick') renderPicker();
   });
 }

@@ -17,9 +17,9 @@
 <meta name="apple-mobile-web-app-title" content="Cookie Tour">
 <meta name="format-detection" content="telephone=no">
 <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
-<link rel="stylesheet" href="assets/css/themes.css?v=32b96abd">
-<link rel="stylesheet" href="assets/css/app.css?v=32b96abd">
-<link rel="stylesheet" href="assets/css/views.css?v=32b96abd">
+<link rel="stylesheet" href="assets/css/themes.css?v=8840a507">
+<link rel="stylesheet" href="assets/css/app.css?v=8840a507">
+<link rel="stylesheet" href="assets/css/views.css?v=8840a507">
 
 <script>
   /* Set the theme before first paint so there is no flash of the wrong one. */
@@ -84,6 +84,30 @@
 
           <div id="stop-detail-panel" hidden></div>
         </div>
+      </div>
+    </section>
+
+    <!-- ============================= PICK VIEW ============================ -->
+    <section id="view-pick" class="view" role="tabpanel" aria-labelledby="tab-pick" hidden>
+      <header class="navbar material" id="pick-navbar">
+        <div class="navbar__row">
+          <div class="navbar__lead"></div>
+          <span class="navbar__compact-title">Caf&eacute;s</span>
+          <div class="navbar__trail"></div>
+        </div>
+      </header>
+      <div class="view__scroll" id="pick-scroll">
+        <header class="hero-title">
+          <h1 class="large-title">Pick your caf&eacute;s</h1>
+          <p class="callout secondary" id="pick-sub">Tap a row to add it. Tap again to take it off.</p>
+        </header>
+        <div class="pad" style="margin-bottom:var(--sp-2)">
+          <div class="row" style="gap:var(--sp-2)">
+            <button class="btn btn--tinted" type="button" id="pick-default" style="flex:1">The waterfront five</button>
+            <button class="btn btn--grey" type="button" id="pick-clear">Clear</button>
+          </div>
+        </div>
+        <div id="pick-list"></div>
       </div>
     </section>
 
@@ -240,7 +264,11 @@
   <nav class="tabbar material" role="tablist" aria-label="Sections">
     <button role="tab" id="tab-map" aria-controls="view-map" aria-selected="true" data-view="map">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3 3 5.5v15L9 18l6 3 6-2.5v-15L15 6 9 3Z"/><path d="M9 3v15M15 6v15"/></svg>
-      <span>Stops</span>
+      <span>Map</span>
+    </button>
+    <button role="tab" id="tab-pick" aria-controls="view-pick" aria-selected="false" data-view="pick">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4.5 6h.01M4.5 12h.01M4.5 18h.01"/></svg>
+      <span>Caf&eacute;s</span>
     </button>
     <button role="tab" id="tab-route" aria-controls="view-route" aria-selected="false" data-view="route">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="5" r="2.5"/><path d="M8.5 19H15a3.5 3.5 0 0 0 0-7H9a3.5 3.5 0 0 1 0-7h6.5"/></svg>
@@ -265,6 +293,6 @@
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script src="vendor/leaflet/leaflet.js"></script>
-<script type="module" src="assets/js/app.js?v=32b96abd"></script>
+<script type="module" src="assets/js/app.js?v=8840a507"></script>
 </body>
 </html>
