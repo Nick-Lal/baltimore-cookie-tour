@@ -17,9 +17,9 @@
 <meta name="apple-mobile-web-app-title" content="Cookie Tour">
 <meta name="format-detection" content="telephone=no">
 <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
-<link rel="stylesheet" href="assets/css/themes.css?v=8b1733e4">
-<link rel="stylesheet" href="assets/css/app.css?v=8b1733e4">
-<link rel="stylesheet" href="assets/css/views.css?v=8b1733e4">
+<link rel="stylesheet" href="assets/css/themes.css?v=26082944">
+<link rel="stylesheet" href="assets/css/app.css?v=26082944">
+<link rel="stylesheet" href="assets/css/views.css?v=26082944">
 
 <script>
   /* Set the theme before first paint so there is no flash of the wrong one. */
@@ -167,14 +167,14 @@
       <div class="view__scroll" id="results-scroll">
         <header class="hero-title">
           <h1 class="large-title">Results</h1>
-          <p class="callout secondary" id="results-sub">Rankings, factor by factor breakdowns, and where you two disagree.</p>
+          <p class="callout secondary" id="results-sub">Everyone's scores, factor by factor breakdowns, and where you disagree most.</p>
         </header>
         <div class="pad" style="margin-bottom:var(--sp-4)">
           <div class="segmented" id="results-filter" role="radiogroup" aria-label="Whose scores to show">
             <span class="segmented__thumb" aria-hidden="true"></span>
-            <button role="radio" aria-checked="true" data-scope="party">My party</button>
+            <button role="radio" aria-checked="true" data-scope="all">Everyone</button>
             <button role="radio" aria-checked="false" data-scope="mine">Just me</button>
-            <button role="radio" aria-checked="false" data-scope="all">Everyone</button>
+            <button role="radio" aria-checked="false" data-scope="party">My party</button>
           </div>
         </div>
         <div id="results-body"></div>
@@ -287,6 +287,6 @@
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script src="vendor/leaflet/leaflet.js"></script>
-<script type="module" src="assets/js/app.js?v=8b1733e4"></script>
+<script type="module" src="assets/js/app.js?v=26082944"></script>
 </body>
 </html>

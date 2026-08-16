@@ -138,6 +138,10 @@ export class LocalAdapter {
   async getTaster() { return this._taster; }
   async listProfiles() { return this._profiles.slice(); }
 
+  /* Everyone who has entered a name. On this adapter that is everyone on this
+     device, because there is nowhere else for them to be. */
+  async listTasters() { return this._profiles.slice(); }
+
   async switchProfile(id) {
     const p = this._profiles.find((x) => x.id === id);
     if (!p) throw new Error('No such taster on this device.');
@@ -597,6 +601,23 @@ export class SupabaseAdapter {
   }
 
   async getTaster() { return this._taster; }
+
+  /*
+   * Everyone who has entered a name, whether or not they have scored anything.
+   *
+   * Typing your name should put you on the board straight away rather than
+   * leaving you invisible until your first cookie. Reads are public — see the
+   * security note at the top of db/schema.sql, which says so plainly — so this
+   * needs no party and no permission.
+   */
+  async listTasters() {
+    try {
+      return (await this._rest('tasters?select=id,display_name,created_at&order=created_at')) ?? [];
+    } catch (err) {
+      if (isNetworkError(err)) return [];
+      throw err;
+    }
+  }
 
   /* ------------------------------------------------- two people, one phone --
    * The device-only adapter has kept a list of tasters since the beginning,

@@ -1,8 +1,8 @@
 /* Results: rankings, factor breakdowns, disagreements and movement over time. */
 
-import { el, clear, wireSegmented, toast } from '../lib/dom.js?v=8b1733e4';
-import { state, subscribe, stopById } from '../lib/state.js?v=8b1733e4';
-import { FACTORS } from '../lib/storage.js?v=8b1733e4';
+import { el, clear, wireSegmented, toast } from '../lib/dom.js?v=26082944';
+import { state, subscribe, stopById } from '../lib/state.js?v=26082944';
+import { FACTORS } from '../lib/storage.js?v=26082944';
 
 const mean = (xs) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0);
 
@@ -326,6 +326,58 @@ function agreementSection(ratings) {
   ]);
 }
 
+/*
+ * Who is tasting.
+ *
+ * Entering a name should put you on the board immediately, not once you have
+ * scored something. Otherwise the first person to open the site sees an empty
+ * page and no evidence that anyone else exists.
+ *
+ * Display names are not unique, and the schema is explicit that this is a
+ * collision rather than a fault: scores stay bound to the auth id that wrote
+ * them. So two people called Nick are numbered rather than merged. Merging
+ * would silently pool two different people's scores, which is the worse of
+ * the two wrong answers.
+ */
+function tasterRoster(ratings) {
+  const tasters = state.tasters ?? [];
+  if (!tasters.length) return null;
+
+  const scoredBy = new Map();
+  for (const r of ratings) {
+    scoredBy.set(r.taster_id, (scoredBy.get(r.taster_id) ?? 0) + 1);
+  }
+
+  const seen = new Map();
+  const rows = tasters.map((t) => {
+    const n = (seen.get(t.display_name) ?? 0) + 1;
+    seen.set(t.display_name, n);
+    return {
+      id: t.id,
+      label: n > 1 ? `${t.display_name} (${n})` : t.display_name,
+      count: scoredBy.get(t.id) ?? 0,
+      isYou: t.id === state.taster?.id,
+    };
+  });
+
+  return el('div', {}, [
+    el('h2', { class: 'section-header', text: 'Who is tasting' }),
+    el('div', { class: 'pad' }, el('div', { class: 'card' }, rows.map((r) => el('div', {
+      class: 'list__row',
+    }, [
+      el('span', { class: 'list__body' }, [
+        el('span', { class: 'list__title', text: r.isYou ? `${r.label} (you)` : r.label }),
+        el('span', {
+          class: 'list__sub',
+          text: r.count === 0
+            ? 'No scores yet'
+            : `${r.count} ${r.count === 1 ? 'score' : 'scores'}`,
+        }),
+      ]),
+    ])))),
+  ]);
+}
+
 /* ----------------------------------------------------------------- render */
 
 export function render() {
@@ -353,6 +405,10 @@ export function render() {
         onclick: () => document.querySelector('[data-view="score"]').click(),
       }, 'Score something'),
     ]));
+    // Still show who is here. Nobody has scored, but knowing three people are
+    // signed up is the difference between "nothing yet" and "nothing works".
+    const roster = tasterRoster(ratings);
+    if (roster) host.append(roster);
     return;
   }
 
@@ -396,6 +452,9 @@ export function render() {
     host.append(el('p', { class: 'pad footnote tertiary', style: { marginTop: 'var(--sp-2)' },
       text: 'Running average after each score. Scores are never overwritten, so re-scoring a cookie adds to this line rather than erasing it.' }));
   }
+
+  const roster = tasterRoster(ratings);
+  if (roster) host.append(roster);
 
   host.append(el('div', { style: { height: 'var(--sp-12)' } }));
 }
@@ -454,6 +513,9 @@ export async function refresh({ quiet = false } = {}) {
   try {
     state.ratings = await state.store.listRatings({ scope: state.resultsScope });
     state.history = await state.store.listHistory({ scope: state.resultsScope });
+    // Deliberately unscoped: the roster is who is taking part, which does not
+    // change depending on whose scores you are looking at.
+    state.tasters = (await state.store.listTasters?.()) ?? [];
   } catch (err) {
     console.error(err);
     // A failed background poll must not wipe what is already on screen.

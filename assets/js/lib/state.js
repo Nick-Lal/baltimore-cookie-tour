@@ -11,6 +11,17 @@ const listeners = new Set();
 const PICKS_KEY = 'cookietour.picks';
 
 /*
+ * Bump this when the default route below changes.
+ *
+ * Saved picks win over the default, deliberately: an app that keeps re-adding
+ * the stop you just removed is infuriating. The cost is that the default is
+ * unreachable on any device that has ever picked anything, which is every
+ * device that has ever been used. Stamping the version lets a changed default
+ * land once, after which manual picks stick again as before.
+ */
+const PICKS_VERSION = 2;
+
+/*
  * The route people asked for by name: an east to west waterfront crawl from
  * Canton down through Fells Point to Harbor East. 3.4 km of walking in total,
  * and two of the legs are under 350 metres.
@@ -31,13 +42,24 @@ export const state = {
   clusters: [],
   rubric: null,
   store: null,
+  tasters: [],
   taster: null,
   ratings: [],
   picked: [],          // stop ids, in visiting order
   legModes: {},        // index -> mode id, only when the user overrode it
   legs: [],
   filter: 'all',
-  resultsScope: 'party',
+  /*
+   * Everyone, not the party.
+   *
+   * This defaulted to 'party', and a party of one narrows to your own id, so
+   * anybody who typed their name and scored a cookie saw a leaderboard with
+   * only themselves on it. The scores were there and already world-readable;
+   * the default filter was hiding them. At the size this is actually used —
+   * a couple of people, ten at the very outside — everybody should simply see
+   * everybody. The party filter still exists for anyone who wants it.
+   */
+  resultsScope: 'all',
   view: 'map',
   detailStopId: null,
   scoring: null,       // { stopId, itemId }
@@ -115,7 +137,9 @@ export function clearPicks() {
 /* Picks used to live only in the URL, so a reload lost the whole route. */
 function savePicks() {
   try {
-    localStorage.setItem(PICKS_KEY, JSON.stringify({ picked: state.picked, seeded: true }));
+    localStorage.setItem(PICKS_KEY, JSON.stringify({
+      picked: state.picked, seeded: true, v: PICKS_VERSION,
+    }));
   } catch { /* private mode */ }
 }
 
@@ -123,7 +147,11 @@ export function restorePicks() {
   let saved = null;
   try { saved = JSON.parse(localStorage.getItem(PICKS_KEY) || 'null'); } catch { /* ignore */ }
 
-  if (saved && Array.isArray(saved.picked)) {
+  // Picks written before the current default was set are one version behind,
+  // so let the new default through once rather than leaving it unreachable.
+  const stale = saved && saved.v !== PICKS_VERSION;
+
+  if (saved && Array.isArray(saved.picked) && !stale) {
     const known = new Set(state.stops.map((s) => s.id));
     state.picked = saved.picked.filter((id) => known.has(id));
     return 'restored';
