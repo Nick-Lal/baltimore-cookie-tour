@@ -1,8 +1,8 @@
 /* Results: rankings, factor breakdowns, disagreements and movement over time. */
 
-import { el, clear, wireSegmented } from '../lib/dom.js?v=8840a507';
-import { state, subscribe, stopById } from '../lib/state.js?v=8840a507';
-import { FACTORS } from '../lib/storage.js?v=8840a507';
+import { el, clear, wireSegmented, toast } from '../lib/dom.js?v=5f1ed2f5';
+import { state, subscribe, stopById } from '../lib/state.js?v=5f1ed2f5';
+import { FACTORS } from '../lib/storage.js?v=5f1ed2f5';
 
 const mean = (xs) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0);
 

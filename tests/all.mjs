@@ -6,6 +6,7 @@ import { dirname, join } from 'node:path';
 const here = dirname(fileURLToPath(import.meta.url));
 const suites = [
   ['syntax.mjs', ['--experimental-vm-modules']],
+  ['imports.mjs', []],
   ['run.mjs', []],
   ['contrast.mjs', []],
 ];

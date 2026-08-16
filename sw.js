@@ -11,7 +11,7 @@
  * is an excellent way to serve last week's bug forever.
  */
 
-const BUILD = '8840a507';
+const BUILD = '5f1ed2f5';
 const SHELL = `cookietour-shell-${BUILD}`;
 const TILES = `cookietour-tiles-${BUILD}`;
 const TILE_LIMIT = 300;

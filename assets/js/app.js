@@ -1,15 +1,15 @@
 /* Boot: load data, wire the shell, hand off to the views. */
 
-import { initTheme, applyTheme } from './themes.js?v=8840a507';
-import { toast } from './lib/dom.js?v=8840a507';
-import { state, emit, subscribe, readHash, restorePicks } from './lib/state.js?v=8840a507';
-import { createStore } from './lib/storage.js?v=8840a507';
-import { loadMatrix } from './lib/routing.js?v=8840a507';
-import { initMap, initStopsView, renderStopList, renderMarkers, hideDetail, fitToStops, renderPicker, initPickerView } from './views/stops.js?v=8840a507';
-import { initRouteView, rebuildRoute, render as renderRoute } from './views/route.js?v=8840a507';
-import { initScoreView, render as renderScore } from './views/score.js?v=8840a507';
-import { initResultsView, refresh as refreshResults } from './views/results.js?v=8840a507';
-import { initSettingsView, render as renderSettings } from './views/settings.js?v=8840a507';
+import { initTheme, applyTheme } from './themes.js?v=5f1ed2f5';
+import { toast } from './lib/dom.js?v=5f1ed2f5';
+import { state, emit, subscribe, readHash, restorePicks } from './lib/state.js?v=5f1ed2f5';
+import { createStore } from './lib/storage.js?v=5f1ed2f5';
+import { loadMatrix } from './lib/routing.js?v=5f1ed2f5';
+import { initMap, initStopsView, renderStopList, renderMarkers, hideDetail, fitToStops, renderPicker, initPickerView } from './views/stops.js?v=5f1ed2f5';
+import { initRouteView, rebuildRoute, render as renderRoute } from './views/route.js?v=5f1ed2f5';
+import { initScoreView, render as renderScore } from './views/score.js?v=5f1ed2f5';
+import { initResultsView, refresh as refreshResults } from './views/results.js?v=5f1ed2f5';
+import { initSettingsView, render as renderSettings } from './views/settings.js?v=5f1ed2f5';
 
 initTheme();
 
