@@ -15,7 +15,16 @@ passed it. The full ruling is summarised at the bottom of `PLAN.md`.
 
 **Gate 2, the shipped site.** Same protocol against the deployed artifact and
 the source, with members instructed to verify each other's claimed defects so
-hallucinated bugs get caught rather than actioned.
+hallucinated bugs get caught rather than actioned. Scores: 84, 79, 78, 62.
+Nobody called the core features excellent.
+
+The verification instruction paid for itself. Three members independently
+claimed two element ids did not exist and that the code using them was dead;
+the peer stage checked, found both ids present and the code running, and threw
+the claim out. It also surfaced two mobile bugs nobody caught first time round:
+the tab bar was rendering at the top of the screen, and most of the stop list
+sat below the fold in a container taller than the viewport. Both were live.
+Both are fixed and verified on the deployed site.
 
 ## Tickets
 

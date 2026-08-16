@@ -306,3 +306,53 @@ the map. Each is a genuine gap rather than a disagreement with the council.
 Rejected with reasons: a focus trap on the bottom sheet, because it is not a
 modal and the map stays interactive behind it; and the claim that OSM tiles
 require a custom User-Agent, which browser JavaScript cannot set at all.
+
+## Gate 2: the council reviews the shipped site
+
+The deployed site went back to the same four models, this time instructed to
+verify each other's claimed defects so hallucinated bugs would be caught rather
+than actioned. Scores: 84, 79, 78, 62. None of them called the core features
+excellent, and they were right not to.
+
+The peer-review stage earned its keep twice over. It rejected a cluster of
+false claims (three members asserted that two element ids did not exist and the
+code referencing them was dead; both ids are present and the code runs), and it
+surfaced two serious mobile bugs that every first-round reviewer had missed.
+
+**The tab bar rendered at the top of the screen.** It was `position: sticky;
+bottom: 0`, which does nothing when the element is the first child of a column
+flex container. An iOS-style tab bar at the top of the viewport is not a detail.
+Fixed by moving it to the last child, with `order: -1` on desktop where the
+shell becomes a row.
+
+**Most of the stop list was unreachable on a phone.** The sheet was `100dvh`
+tall and translated downward, so its scroll container ran to y=1250 inside an
+812px viewport. Everything below the fold existed in the layout and could not
+be reached. The sheet is now sized to its detent and anchored above the tab bar,
+so the visible box is the box.
+
+Both were live on the deployed site while I was measuring other things about it,
+which is the lesson: I had checked that tap targets were 44px without ever
+checking where the bar containing them was.
+
+The rest of the confirmed queue: reorder buttons at 38px, filters claiming
+`role="tablist"` while controlling no tabpanel, a theme picker that was ten
+sequential tab stops, cloud export built from a view with no factor columns,
+import that validated nothing, local taster names going stale after a rename,
+and four Postgres grant and RLS mistakes where the SQL did not do what its own
+comment claimed. Column-level `REVOKE` does not narrow a table-level `GRANT`;
+`EXECUTE` is granted to `PUBLIC` by default; `FORCE ROW LEVEL SECURITY` on a
+table written only by a `SECURITY DEFINER` function makes that function fail;
+and a cascade from `tasters` would have let anyone delete their own scores.
+
+Several distance claims in the copy were also wrong, and were corrected against
+`data/matrix.json` rather than against memory. Ovenbird Little Italy to Kneads
+is 300 metres, not 700.
+
+Requirement 7 remains the one genuine hole, and every member said so: the
+deployed site ships without `config/supabase.json`, so it runs on device-only
+storage. The schema, the seed, the runbook and the adapter are all written and
+committed. What is missing is a Supabase account, which is not mine to create.
+Two people can still score properly on one shared phone, which was added in
+response to this round.
+
