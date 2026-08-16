@@ -49,23 +49,31 @@ This is what lets someone put in a name and start scoring without inventing a
 password halfway through a date. Every visitor still gets a real, unique
 identity that the security policies key off.
 
-## 4. Turn on CAPTCHA
+## 4. Do not turn on CAPTCHA
 
-Authentication, then Attack Protection. Switch on CAPTCHA protection, choose
-Cloudflare Turnstile, and follow the prompt to get a site key.
+An earlier version of this guide called CAPTCHA mandatory. That was wrong, and
+following it would have broken the site: Supabase rejects a sign-up that
+carries no `captcha_token`, and this client does not send one, because that
+needs a Cloudflare Turnstile widget rendered on the page. Switch CAPTCHA on for
+anonymous sign-ins and every visitor silently drops back to device-only
+storage.
 
-**Do not skip this one.** Anonymous sign-in with no CAPTCHA is an unlimited
-identity factory: anyone who views the page source gets the public key, and a
-short script could mint thousands of identities and fill the global
-leaderboard with nonsense. CAPTCHA does not make that impossible, but it makes
-it expensive enough that nobody bothers.
+What to do instead: Authentication, then Rate Limits, and check **Rate limit
+for anonymous users**. The default of 30 an hour per IP is the right order of
+magnitude and is the throttle that actually binds here.
 
-While you are on that screen, set a sensible rate limit for sign-ups per hour.
-Thirty is plenty.
+The residual risk, stated honestly: minting an anonymous identity is cheap, so
+the per-taster limits in the schema raise the cost of abuse rather than
+capping it. For a cookie tour shared between two people that is proportionate.
+If this ever needed to be abuse-resistant, the fix is a Turnstile widget in the
+client, not a checkbox in the dashboard.
 
 ## 5. Point the site at it
 
-Settings, then API. Copy the **Project URL** and the **anon public** key.
+Settings, then API Keys. Copy the **Project URL** and the **publishable** key,
+the one starting `sb_publishable_`. On older projects this is the key labelled
+**anon public** instead; either works, and the config field is called `anonKey`
+for both.
 
 Send me those two values and I will do the rest. Or do it yourself: copy
 `config/supabase.example.json` to `config/supabase.json` and fill them in:
@@ -119,15 +127,23 @@ Nobody can submit a total that disagrees with its own factor scores. Totals are
 computed by a database trigger from a server-side weights table, so the number
 the client sends is ignored.
 
-Party codes cannot be read out or enumerated. Only a hash is stored, joining
-goes through a single function that compares server-side, and there is a limit
-of ten join attempts an hour per person.
+Party codes cannot be read back. Only a hash is stored, the hash is not granted
+to any client, and joining goes through one function that compares server-side.
+Guessing is also not observable: `created_by` and `created_at` are withheld too,
+so a guesser cannot tell "I joined a real party" from "I made a new one". There
+is a limit of ten *new* join attempts an hour per person; re-joining a party you
+are already in is free, so saving your settings twice does not lock you out.
 
-What it does not guarantee: display names are not verified, so two people can
-pick the same one. And a public leaderboard with anonymous sign-in can never be
-completely proof against someone determined to stuff it. That is why the party
-filter exists and why it is the default view. Within a party, membership is
-gated by a code, and the numbers are trustworthy.
+What it does not guarantee, and this matters more than the rest: **nothing here
+is private**. Every score, note and display name is readable by anyone with the
+key that ships in the page, no sign-in required. The party code filters what the
+site shows you; it does not restrict what the database will hand out. Treat
+notes as public writing.
+
+Display names are not verified either, so two people can pick the same one. And
+a leaderboard with free anonymous identities cannot be made proof against
+someone determined to stuff it. If that ever happens, you own the database:
+delete the rows in the Supabase table editor.
 
 ## Turning it off again
 

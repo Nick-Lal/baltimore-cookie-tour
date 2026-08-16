@@ -24,13 +24,18 @@
 --     joining goes through one audited function with a per-user attempt limit.
 --
 -- What it does NOT guarantee, and the site says so on the page:
---   * Anonymous sign-in mints identities on demand. Somebody determined could
---     script sign-ups and stuff the global leaderboard. The per-taster rate
---     limits below raise the cost, and turning on CAPTCHA in the dashboard
---     (see the checklist at the bottom) raises it a lot more, but a public
---     leaderboard with no proof of personhood is never fully sybil-proof. The
---     party-scoped leaderboard is the trustworthy one, because membership is
---     gated by a code, and that is what the site shows by default.
+--   * Anonymous sign-in mints identities on demand, and the per-taster limits
+--     below are therefore not a real defence against someone scripting
+--     sign-ups: they just make each identity cheap rather than free. The only
+--     throttle that binds is the per-IP anonymous sign-in limit in the
+--     dashboard. CAPTCHA would bind much harder but is NOT compatible with
+--     this client (see the checklist at the bottom). A public leaderboard
+--     without proof of personhood is not sybil-proof, and this one is not.
+--   * EVERYTHING IS PUBLIC TO READ. Scores, tasting notes and display names
+--     are readable by anyone holding the key that ships in the page, with no
+--     sign-in at all. Party codes scope which rows the site SHOWS you; they
+--     are not access control and never were. Do not write anything in a note
+--     you would not put on a postcard.
 --   * Display names are not verified. Two people can pick the same name. That
 --     is a naming collision, not a security hole: scores stay bound to the
 --     auth.uid() that wrote them.
@@ -342,6 +347,19 @@ begin
     raise exception 'Party codes are 6 to 40 characters.' using errcode = 'check_violation';
   end if;
 
+  v_hash := encode(extensions.digest(lower(btrim(p_code)) || ':cookietour-v2', 'sha256'), 'hex');
+  select id into v_party from public.parties where code_hash = v_hash;
+
+  -- Re-joining a party you are already in is free. Without this, saving the
+  -- settings form twice burns two of the ten hourly attempts, and a user who
+  -- edits their display name a few times locks themselves out of their own
+  -- party. It reveals nothing: you already knew that code.
+  if v_party is not null and exists (
+    select 1 from public.party_members where party_id = v_party and taster_id = v_uid
+  ) then
+    return v_party;
+  end if;
+
   select count(*) into n_recent
     from public.party_join_attempts
    where taster_id = v_uid and attempted_at > now() - interval '1 hour';
@@ -350,10 +368,6 @@ begin
       using errcode = 'check_violation';
   end if;
   insert into public.party_join_attempts (taster_id) values (v_uid);
-
-  v_hash := encode(extensions.digest(lower(btrim(p_code)) || ':cookietour-v2', 'sha256'), 'hex');
-
-  select id into v_party from public.parties where code_hash = v_hash;
   if v_party is null then
     insert into public.parties (code_hash, created_by) values (v_hash, v_uid)
     returning id into v_party;
@@ -363,6 +377,26 @@ begin
   on conflict do nothing;
 
   return v_party;
+end;
+$$;
+
+-- Leaving. join_party creates a party when the code does not exist, so a typo
+-- drops you into a junk party of one. Without this there is no way back out,
+-- and the mistake is permanent.
+create or replace function public.leave_party(p_party uuid)
+returns boolean
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_uid uuid := (select auth.uid());
+begin
+  if v_uid is null then
+    raise exception 'Sign in first.' using errcode = 'insufficient_privilege';
+  end if;
+  delete from public.party_members where party_id = p_party and taster_id = v_uid;
+  return found;
 end;
 $$;
 
@@ -460,7 +494,10 @@ grant insert (taster_id, item_key, chocolate, texture, dough, salt, structure,
 -- Column-level again, and this one matters: a table-level grant here would
 -- hand every party member the code_hash for their own party, which the comment
 -- above the parties table claims never happens. Now it is actually true.
-grant select (id, label, created_by, created_at) on public.parties to authenticated;
+-- Only id and label. created_by and created_at would let a caller tell
+-- "I joined a party that already existed" from "I just made one", which turns
+-- join_party into an oracle for guessing other people's codes.
+grant select (id, label) on public.parties to authenticated;
 grant select                 on public.party_members       to authenticated;
 grant select                 on public.ratings_current     to anon, authenticated;
 grant select                 on public.rating_feed         to anon, authenticated;
@@ -469,11 +506,13 @@ grant select                 on public.rating_history      to anon, authenticate
 -- Postgres grants EXECUTE on every new function to PUBLIC by default, so the
 -- explicit grants below are decorative unless PUBLIC is revoked first.
 revoke execute on function public.join_party(text)          from public;
+revoke execute on function public.leave_party(uuid)         from public;
 revoke execute on function public.my_party_ids()            from public;
 revoke execute on function public.rating_events_score()     from public;
 revoke execute on function public.rating_events_rate_limit() from public;
 
-grant execute on function public.join_party(text) to authenticated;
+grant execute on function public.join_party(text)  to authenticated;
+grant execute on function public.leave_party(uuid) to authenticated;
 grant execute on function public.my_party_ids()   to authenticated;
 
 -- ===========================================================================
@@ -484,14 +523,21 @@ grant execute on function public.my_party_ids()   to authenticated;
 -- 2. Dashboard -> Authentication -> Sign In / Providers:
 --    turn ON "Enable anonymous sign-ins".
 --
--- 3. Dashboard -> Authentication -> Attack Protection:
---    turn ON CAPTCHA (Cloudflare Turnstile) and enable it for anonymous
---    sign-ins. THIS STEP IS NOT OPTIONAL. Without it, anonymous sign-in is an
---    unlimited identity factory and the global leaderboard can be stuffed by
---    anyone with a script. With it, the cost of doing so goes up enormously.
+-- 3. DO NOT turn on CAPTCHA for anonymous sign-ins unless you also change the
+--    client. An earlier version of this file called that step mandatory, which
+--    was wrong and would have broken the site: Supabase rejects a sign-up with
+--    no captcha_token, and assets/js/lib/storage.js does not send one because
+--    doing so needs a Turnstile widget rendered on the page. Enabling CAPTCHA
+--    without that change makes every visitor fail to sign in, silently.
 --
--- 4. Dashboard -> Authentication -> Rate Limits: cap anonymous sign-ins per
---    hour per IP. The default is generous; 30 is plenty for a cookie tour.
+--    The consequence, stated plainly: minting an anonymous identity is cheap.
+--    The defence that IS in place is the per-IP limit in step 4 plus the
+--    per-taster limits above. That is proportionate for a personal cookie
+--    site, and it is not proof against someone determined. See PLAN.md.
+--
+-- 4. Dashboard -> Authentication -> Rate Limits: "Rate limit for anonymous
+--    users" caps anonymous sign-ins per hour per IP. The default of 30 is the
+--    right order of magnitude for a cookie tour. This is the real throttle.
 --
 -- 5. Copy config/supabase.example.json to config/supabase.json and fill in
 --    your project URL and anon key. COMMIT that file. GitHub Pages serves

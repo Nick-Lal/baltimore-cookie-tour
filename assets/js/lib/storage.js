@@ -530,9 +530,14 @@ export async function createStore() {
     try {
       return await new SupabaseAdapter(config).init();
     } catch (err) {
-      console.warn('Cloud storage unavailable, falling back to this device.', err);
+      // Falling back silently is how a broken database looks identical to a
+      // working one. The commonest cause is CAPTCHA being switched on for
+      // anonymous sign-ins, which this client cannot satisfy, so name it.
+      console.error('Cloud storage unavailable, falling back to this device.', err);
       const local = await new LocalAdapter().init();
-      local.degraded = err.message;
+      local.degraded = /captcha/i.test(err.message)
+        ? 'The database rejected sign-in because CAPTCHA is enabled for anonymous sign-ins. This client cannot send a CAPTCHA token, so turn it off in Authentication, Attack Protection.'
+        : err.message;
       return local;
     }
   }

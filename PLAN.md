@@ -104,9 +104,13 @@ nothing is protected by hiding it. Every visitor gets a real JWT through
 anonymous sign-in, and row level security decides what that JWT may do. The
 browser cannot bypass RLS, so the policies are the entire boundary.
 
-- RLS is explicitly enabled *and* forced on every table. Writing policies on a
-  table without enabling RLS leaves it wide open, which is the standard way a
-  "secure" Postgres schema leaks.
+- RLS is enabled on every table, and forced on `tasters` and `rating_events`.
+  It is deliberately not forced on `parties` and `party_members`, because those
+  are written only by `join_party()`, which is `SECURITY DEFINER` and therefore
+  runs as the table owner; forcing RLS would subject the owner to policies that
+  do not grant insert, and joining a party would fail outright. An earlier
+  version of this document claimed RLS was forced on every table, which was
+  simply false.
 - Every insert policy carries `WITH CHECK (taster_id = auth.uid())`, so a score
   cannot be attributed to somebody else even by posting straight to the API.
 - Scores are append-only. There is no UPDATE or DELETE grant on the ratings
@@ -122,22 +126,40 @@ browser cannot bypass RLS, so the policies are the entire boundary.
 - Per-taster rate limits: sixty scores an hour, five hundred total, ten party
   join attempts an hour.
 
-Party isolation gets its own tables rather than a column on a public profile
+Party membership gets its own tables rather than a column on a public profile
 row. The council caught that a party code stored on `tasters` would be readable
 by anybody, because that table has to be world-readable to render names on a
 leaderboard, and RLS is row-level rather than column-level. So only a SHA-256
 hash is stored, joining goes through one audited `SECURITY DEFINER` function
 that compares server-side, and codes are at least six characters.
 
-The honest limits, stated on the site rather than buried here. Anonymous
-sign-in mints identities on demand, so a determined person could script
-sign-ups and stuff the *global* leaderboard. CAPTCHA on anonymous sign-in is a
-required setup step, not an optional one, and the rate limits raise the cost
-further, but no public leaderboard without proof of personhood is fully
-sybil-proof. This is why the party-scoped view is the default: membership is
-gated by a code, so those numbers are the trustworthy ones. Separately, display
-names are not verified, so two people can pick the same one. That is a naming
-collision, not a security hole.
+### What it does not protect, stated plainly
+
+**Everything is readable.** Scores, tasting notes and display names are
+readable by anyone holding the key printed in the page, with no sign-in at all.
+The party code filters which rows the site *shows* you. It is not access
+control and was never implemented as any. Earlier drafts of this plan called
+the party view "the trustworthy one" in a way that implied privacy; it does
+not. Do not write anything in a note you would not put on a postcard, and the
+scoring screen now says so next to the field.
+
+**Identities are cheap.** Anonymous sign-in mints one on demand, so the
+per-taster rate limits raise the cost of abuse without capping it. The only
+throttle that genuinely binds is Supabase's per-IP limit on anonymous sign-ins,
+set to 30 an hour.
+
+CAPTCHA would bind much harder, and an earlier version of this plan called it a
+mandatory setup step. That was wrong, and dangerously so: Supabase rejects a
+sign-up carrying no `captcha_token`, and this client sends none, because doing
+so requires rendering a Turnstile widget and taking a CDN dependency the rest
+of the project deliberately avoids. Following that instruction would have made
+every visitor fail to sign in and silently fall back to device-only storage.
+The decision taken is to leave CAPTCHA off, rely on the per-IP limit, and say
+what that does and does not buy. The fallback now names CAPTCHA explicitly as a
+likely cause rather than failing quietly.
+
+**Names are not verified**, so two people can pick the same one. That is a
+naming collision, not a security hole.
 
 All user-written text is rendered through `textContent`. There is no
 `innerHTML` path for user data anywhere in the codebase, which is the reason
