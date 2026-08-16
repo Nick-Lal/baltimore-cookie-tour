@@ -29,7 +29,7 @@ function anchorText(factor, value) {
 function renderPickStop(host) {
   host.append(el('header', { class: 'hero-title' }, [
     el('h1', { class: 'large-title', text: 'Score a cookie' }),
-    el('p', { class: 'callout secondary', text: 'Pick where you are. Six factors, written marks for each, so two people’s numbers actually mean the same thing.' }),
+    el('p', { class: 'callout secondary', text: 'Pick where you are. Six factors, written marks for each, so two people's numbers actually mean the same thing.' }),
   ]));
 
   const picked = state.picked.map(stopById).filter(Boolean);

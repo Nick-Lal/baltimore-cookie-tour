@@ -218,7 +218,7 @@ export function renderStopList() {
   if (!visible.length) {
     host.append(el('div', { class: 'empty' }, [
       el('h3', { class: 'headline', text: 'Nothing matches that filter' }),
-      el('p', { class: 'footnote', text: 'Try "All" — or come back during opening hours.' }),
+      el('p', { class: 'footnote', text: 'Try "All", or come back during opening hours.' }),
     ]));
     return;
   }

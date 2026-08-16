@@ -97,7 +97,7 @@ function rankRow(item, i, itemType) {
             item.ratings.filter((r) => r.notes).map((r) =>
               el('p', { class: 'note-quote' }, [
                 el('span', { text: r.notes }),
-                el('span', { class: 'tertiary', text: `  — ${r.taster_name}` }),
+                el('span', { class: 'tertiary', text: `  by ${r.taster_name}` }),
               ]))));
         }
       }

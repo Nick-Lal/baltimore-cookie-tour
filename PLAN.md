@@ -1,4 +1,4 @@
-# Baltimore Chocolate Chip Cookie Tour — build plan
+# Baltimore Chocolate Chip Cookie Tour: build plan
 
 Version 2, 16 August 2026.
 
@@ -216,7 +216,7 @@ append-only, re-scoring a cookie extends that line rather than erasing it.
 ### Themes
 
 Ten complete themes, switchable live and persisted. Each sets the full token
-surface — colour, radius scale, shadow, type family, letterspacing — so
+surface (colour, radius scale, shadow, type family, letterspacing) so
 switching reads as a different designer's work rather than a hue rotation. The
 map basemap follows the theme's light or dark scheme.
 

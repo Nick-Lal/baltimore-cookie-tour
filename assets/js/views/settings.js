@@ -16,7 +16,7 @@ function statusCard() {
         'Row level security means nobody can edit or delete a score you wrote, and scores are append-only, so nothing you record is ever overwritten.',
       ]
     : [
-        'Scores are saved on this device only. Nothing leaves your phone, and nothing syncs to anyone else’s.',
+        'Scores are saved on this device only. Nothing leaves your phone, and nothing syncs to anyone else's.',
         'That is fine for one person on one phone. For two people comparing scores, connect the shared database.',
       ];
 
