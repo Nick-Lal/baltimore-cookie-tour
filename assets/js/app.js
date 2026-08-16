@@ -1,15 +1,15 @@
 /* Boot: load data, wire the shell, hand off to the views. */
 
-import { initTheme, applyTheme } from './themes.js?v=b9bbecc8';
-import { toast } from './lib/dom.js?v=b9bbecc8';
-import { state, emit, subscribe, readHash } from './lib/state.js?v=b9bbecc8';
-import { createStore } from './lib/storage.js?v=b9bbecc8';
-import { loadMatrix } from './lib/routing.js?v=b9bbecc8';
-import { initMap, initStopsView, renderStopList, renderMarkers, hideDetail, fitToStops } from './views/stops.js?v=b9bbecc8';
-import { initRouteView, rebuildRoute, render as renderRoute } from './views/route.js?v=b9bbecc8';
-import { initScoreView, render as renderScore } from './views/score.js?v=b9bbecc8';
-import { initResultsView, refresh as refreshResults } from './views/results.js?v=b9bbecc8';
-import { initSettingsView, render as renderSettings } from './views/settings.js?v=b9bbecc8';
+import { initTheme, applyTheme } from './themes.js?v=6fe1afa3';
+import { toast } from './lib/dom.js?v=6fe1afa3';
+import { state, emit, subscribe, readHash } from './lib/state.js?v=6fe1afa3';
+import { createStore } from './lib/storage.js?v=6fe1afa3';
+import { loadMatrix } from './lib/routing.js?v=6fe1afa3';
+import { initMap, initStopsView, renderStopList, renderMarkers, hideDetail, fitToStops } from './views/stops.js?v=6fe1afa3';
+import { initRouteView, rebuildRoute, render as renderRoute } from './views/route.js?v=6fe1afa3';
+import { initScoreView, render as renderScore } from './views/score.js?v=6fe1afa3';
+import { initResultsView, refresh as refreshResults } from './views/results.js?v=6fe1afa3';
+import { initSettingsView, render as renderSettings } from './views/settings.js?v=6fe1afa3';
 
 initTheme();
 
@@ -33,6 +33,7 @@ function initTabs() {
     if (name === 'results') refreshResults();
     if (name === 'settings') renderSettings();
     if (name === 'map') setTimeout(() => window.dispatchEvent(new Event('resize')), 60);
+    emit('view');
   }
 
   for (const tab of tabs) {
@@ -191,6 +192,56 @@ function initScrollTitles() {
   }
 }
 
+/* -------------------------------------------------- service worker + net */
+
+/*
+ * Offline is the normal case on this tour, not the exception: you are outdoors,
+ * on cellular, walking between stops. The stop list, rubric, travel matrix and
+ * interface are all cached, so only the live routing line and the shared
+ * database actually need a signal.
+ */
+function initServiceWorker() {
+  if (!('serviceWorker' in navigator)) return;
+
+  // Escape hatch. If a worker ever ships broken, ?sw=off tears it down instead
+  // of leaving people stuck on a bad build with no way to clear it.
+  if (new URLSearchParams(location.search).has('sw')) {
+    navigator.serviceWorker.getRegistrations().then(async (regs) => {
+      for (const r of regs) {
+        if (r.active) r.active.postMessage('unregister');
+        await r.unregister();
+      }
+      toast('Offline support switched off. Reloading.');
+      setTimeout(() => location.replace(location.pathname), 1200);
+    });
+    return;
+  }
+
+  // boot() is async, so by the time this runs the load event has usually
+  // already fired, and a listener added afterwards never runs at all.
+  const register = () => navigator.serviceWorker.register('sw.js').catch((err) => {
+    console.warn('Service worker did not register:', err.message);
+  });
+  if (document.readyState === 'complete') register();
+  else window.addEventListener('load', register, { once: true });
+}
+
+function initNetworkStatus() {
+  const show = () => {
+    document.body.classList.toggle('is-offline', !navigator.onLine);
+  };
+  window.addEventListener('online', () => {
+    show();
+    toast('Back online.');
+    if (state.view === 'results') refreshResults();
+  });
+  window.addEventListener('offline', () => {
+    show();
+    toast('Offline. Stops and your route still work; new scores will not sync.');
+  });
+  show();
+}
+
 /* ------------------------------------------------------------------- boot */
 
 async function boot() {
@@ -215,6 +266,8 @@ async function boot() {
   const show = initTabs();
   initSheet();
   initScrollTitles();
+  initServiceWorker();
+  initNetworkStatus();
 
   initMap();
   initStopsView();

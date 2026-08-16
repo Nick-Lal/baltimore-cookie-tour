@@ -17,7 +17,7 @@
  * as though it were measured.
  */
 
-import { haversineKm, decodePolyline } from './geo.js?v=b9bbecc8';
+import { haversineKm, decodePolyline } from './geo.js?v=6fe1afa3';
 
 /*
  * A 14x14 street-network matrix for both profiles is committed to the repo,

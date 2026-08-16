@@ -22,6 +22,7 @@
 .view__scroll {
   flex: 1;
   overflow-y: auto;
+  overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
   padding-bottom: calc(var(--sp-12) + env(safe-area-inset-bottom));
 }
@@ -52,10 +53,20 @@
   padding: calc(var(--sp-3) + env(safe-area-inset-top)) var(--margin) 0;
   pointer-events: none;
 }
-.map-chrome__row { pointer-events: auto; display: flex; gap: var(--sp-2); align-items: flex-start; }
-.map-chrome__row .segmented { flex: 1; min-width: 0; }
+.map-chrome__row { pointer-events: auto; }
+.map-chrome__row .segmented { width: 100%; }
+/* Every filter label has to fit at 320px, so the segmented control gets the
+   full width and locate-me moves to the bottom right, above the zoom buttons,
+   which is where a map user looks for it anyway. */
+.map-chrome .segmented button { min-width: 0; padding: 0 var(--sp-1); }
 .locate-btn {
-  flex-shrink: 0;
+  /* Top right, under the filter row. The bottom right corner belongs to
+     Leaflet's zoom buttons and the two collide there. */
+  position: absolute;
+  right: var(--margin);
+  top: calc(env(safe-area-inset-top) + var(--sp-3) + 52px);
+  z-index: 500;
+  pointer-events: auto;
   border-radius: var(--radius-sm);
   box-shadow: var(--shadow-card);
   color: var(--tint);
@@ -362,3 +373,21 @@
   #view-settings .view__scroll { max-width: 720px; margin: 0 auto; width: 100%; }
   .theme-grid { grid-template-columns: 1fr 1fr; }
 }
+
+/* ------------------------------------------------------------- offline --- */
+/* A standing marker, because a toast disappears and the condition does not. */
+body.is-offline .tabbar::before {
+  content: "Offline";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -100%);
+  padding: 3px 12px;
+  border-radius: 999px 999px 0 0;
+  background: var(--label-2);
+  color: var(--bg);
+  font-size: var(--t-caption2);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+.tabbar { position: relative; }

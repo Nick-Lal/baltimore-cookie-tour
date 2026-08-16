@@ -1,8 +1,8 @@
 /* Results: rankings, factor breakdowns, disagreements and movement over time. */
 
-import { el, clear, wireSegmented } from '../lib/dom.js?v=b9bbecc8';
-import { state, subscribe, stopById } from '../lib/state.js?v=b9bbecc8';
-import { FACTORS } from '../lib/storage.js?v=b9bbecc8';
+import { el, clear, wireSegmented } from '../lib/dom.js?v=6fe1afa3';
+import { state, subscribe, stopById } from '../lib/state.js?v=6fe1afa3';
+import { FACTORS } from '../lib/storage.js?v=6fe1afa3';
 
 const mean = (xs) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0);
 
@@ -244,6 +244,88 @@ function historySection(history) {
   return rows;
 }
 
+
+/*
+ * Inter-rater agreement.
+ *
+ * The rubric says outright that its weights are considered judgements with no
+ * reliability data behind them. Once two people have scored the same items that
+ * stops being true: there is real paired data, and the honest caveat can become
+ * a measurement.
+ *
+ * For each factor, the mean absolute difference between tasters across every
+ * item they both scored. A small gap means the written anchors are doing their
+ * job. A large one means either the anchors are vague or you genuinely taste it
+ * differently, and telling those two apart is the interesting part.
+ */
+function agreementByFactor(ratings, itemType) {
+  const rows = ratings.filter((r) => r.item_type === itemType);
+  const byItem = new Map();
+  for (const r of rows) {
+    const k = `${r.stop_id}:${r.item_id}`;
+    if (!byItem.has(k)) byItem.set(k, []);
+    byItem.get(k).push(r);
+  }
+
+  const factors = FACTORS[itemType];
+  const diffs = Object.fromEntries(factors.map((f) => [f, []]));
+  let pairedItems = 0;
+
+  for (const list of byItem.values()) {
+    if (list.length < 2) continue;
+    pairedItems++;
+    for (const f of factors) {
+      for (let i = 0; i < list.length; i++) {
+        for (let j = i + 1; j < list.length; j++) {
+          const a = Number(list[i][f]);
+          const b = Number(list[j][f]);
+          if (Number.isFinite(a) && Number.isFinite(b)) diffs[f].push(Math.abs(a - b));
+        }
+      }
+    }
+  }
+
+  if (pairedItems < 3) return { pairedItems, factors: [] };
+
+  const out = factors
+    .map((f) => ({ id: f, n: diffs[f].length, gap: mean(diffs[f]) }))
+    .filter((x) => x.n > 0)
+    .sort((a, b) => a.gap - b.gap);
+  return { pairedItems, factors: out };
+}
+
+function agreementSection(ratings) {
+  const { pairedItems, factors } = agreementByFactor(ratings, 'cookie');
+  if (!factors.length) return null;
+
+  const rubric = state.rubric.rubrics.cookie;
+  const nameOf = (id) => rubric.factors.find((f) => f.id === id)?.name ?? id;
+  const best = factors[0];
+  const worst = factors[factors.length - 1];
+
+  return el('div', {}, [
+    el('h2', { class: 'section-header', text: 'Where you agree' }),
+    el('div', { class: 'pad' }, el('div', { class: 'card' },
+      el('div', { style: { padding: 'var(--sp-3) var(--sp-4) var(--sp-4)' } },
+        factors.map((f) => el('div', { class: 'factor-bar' }, [
+          el('span', { class: 'factor-bar__name', text: nameOf(f.id) }),
+          el('span', { class: 'meter' }, el('span', {
+            class: 'meter__fill',
+            style: { width: `${Math.max(3, Math.min(100, (f.gap / 4) * 100))}%` },
+          })),
+          el('span', { class: 'factor-bar__val tabular', text: f.gap.toFixed(1) }),
+        ]))))),
+    el('p', { class: 'pad footnote tertiary', style: { marginTop: 'var(--sp-2)' },
+      text: `Average gap between tasters on each factor, across ${pairedItems} ` +
+            `${pairedItems === 1 ? 'cookie' : 'cookies'} you both scored. Shorter bars mean ` +
+            `closer agreement. You are closest on ${nameOf(best.id).toLowerCase()}, ` +
+            `${best.gap.toFixed(1)} apart on average, and furthest on ` +
+            `${nameOf(worst.id).toLowerCase()} at ${worst.gap.toFixed(1)}. A wide gap means ` +
+            `either the written anchors are not pinning that factor down or you genuinely ` +
+            `taste it differently. Worth working out which.` }),
+  ]);
+}
+
 /* ----------------------------------------------------------------- render */
 
 export function render() {
@@ -295,6 +377,9 @@ export function render() {
       text: 'The interesting arguments are here. Open the same item in the ranking above to see which factor you actually split on.' }));
   }
 
+  const agree = agreementSection(ratings);
+  if (agree) host.append(agree);
+
   const hist = historySection(state.history ?? []);
   if (hist.length) {
     host.append(el('h2', { class: 'section-header', text: 'How averages moved' }));
@@ -306,23 +391,67 @@ export function render() {
   host.append(el('div', { style: { height: 'var(--sp-12)' } }));
 }
 
+/*
+ * Near-live refresh.
+ *
+ * On a date the useful moment is watching their score land next to yours. This
+ * polls instead of holding a websocket: for two people the difference is not
+ * observable, it costs one small query, and it cannot leave a socket wedged
+ * open in a pocket. It runs only while the Results tab is actually on screen,
+ * so a phone in a bag does nothing at all.
+ */
+const POLL_MS = 15_000;
+let pollTimer = null;
+
+function pollingShouldRun() {
+  return state.view === 'results'
+    && document.visibilityState === 'visible'
+    && state.store?.mode === 'cloud'
+    && navigator.onLine;
+}
+
+function syncPolling() {
+  clearInterval(pollTimer);
+  pollTimer = null;
+  if (!pollingShouldRun()) return;
+  pollTimer = setInterval(() => {
+    if (pollingShouldRun()) refresh({ quiet: true });
+    else syncPolling();
+  }, POLL_MS);
+}
+
 export function initResultsView() {
   wireSegmented(document.getElementById('results-filter'), async ({ scope }) => {
     state.resultsScope = scope;
     await refresh();
   });
-  subscribe((reason) => { if (reason === 'ratings') render(); });
+  subscribe((reason) => {
+    if (reason === 'ratings') render();
+    if (reason === 'view') syncPolling();
+  });
+  document.addEventListener('visibilitychange', () => {
+    syncPolling();
+    if (pollingShouldRun()) refresh({ quiet: true });
+  });
 }
 
-export async function refresh() {
+export async function refresh({ quiet = false } = {}) {
   if (!state.store) return;
+  const before = state.ratings?.length ?? 0;
   try {
     state.ratings = await state.store.listRatings({ scope: state.resultsScope });
     state.history = await state.store.listHistory({ scope: state.resultsScope });
   } catch (err) {
     console.error(err);
+    // A failed background poll must not wipe what is already on screen.
+    if (quiet) { syncPolling(); return; }
     state.ratings = [];
     state.history = [];
   }
+  const gained = (state.ratings?.length ?? 0) - before;
   render();
+  syncPolling();
+  if (quiet && gained > 0) {
+    toast(gained === 1 ? 'A new score just came in.' : `${gained} new scores just came in.`);
+  }
 }

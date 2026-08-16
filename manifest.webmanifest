@@ -1,0 +1,19 @@
+{
+  "name": "Baltimore Cookie Tour",
+  "short_name": "Cookie Tour",
+  "description": "Plan a chocolate chip cookie crawl across Baltimore, route it on foot and by scooter, and score every cookie against the same rubric.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#2e2019",
+  "theme_color": "#fbf6ee",
+  "categories": ["food", "travel", "lifestyle"],
+  "icons": [
+    { "src": "assets/icons/favicon-32.png", "sizes": "32x32", "type": "image/png" },
+    { "src": "assets/icons/icon-180.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

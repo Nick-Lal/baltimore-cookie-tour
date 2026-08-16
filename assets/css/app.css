@@ -6,7 +6,11 @@
 
 /* ---------- reset ---------- */
 *, *::before, *::after { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
 body, h1, h2, h3, h4, p, figure, blockquote, dl, dd, ul, ol { margin: 0; padding: 0; }
 ul[role="list"], ol[role="list"] { list-style: none; }
 img, svg, video { display: block; max-width: 100%; }
@@ -100,8 +104,9 @@ h1, h2, h3, .display {
 .app {
   display: flex;
   flex-direction: column;
-  height: 100dvh;
-  height: 100svh;
+  height: 100vh;                 /* floor for anything without svh */
+  height: -webkit-fill-available; /* older iOS Safari, tracks the URL bar */
+  height: 100svh;                /* the small viewport: never cropped */
 }
 
 /* ---------- nav bar with collapsing large title ---------- */
@@ -309,13 +314,15 @@ h1, h2, h3, .display {
   box-shadow: var(--shadow-sheet);
   bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
   height: var(--detent, 140px);
-  max-height: calc(100dvh - var(--tabbar-h) - env(safe-area-inset-bottom));
+  max-height: calc(100svh - var(--tabbar-h) - env(safe-area-inset-bottom));
   touch-action: none;
   will-change: height;
 }
 .sheet.is-animating { transition: height var(--dur) var(--ease); }
 .sheet__grip {
   flex-shrink: 0;
+  -webkit-user-select: none;
+  user-select: none;
   padding: var(--sp-2) 0 var(--sp-1);
   display: grid;
   place-items: center;
@@ -567,5 +574,34 @@ label.form-label {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* ---------- iOS specifics ---------- */
+
+/* Safari zooms the whole page when a focused control is under 16px. Everything
+   here inherits 17px, but pinning the floor stops a future 13px input from
+   quietly reintroducing the zoom-and-never-zoom-back behaviour. */
+input, select, textarea { font-size: max(16px, 1rem); }
+
+/* Standalone mode has no browser chrome to absorb the safe area. */
+@media (display-mode: standalone) {
+  .navbar { padding-top: max(var(--sp-1), env(safe-area-inset-top)); }
+}
+
+/* Blurring a translucent bar over a moving map is the most expensive thing on
+   the page. Keep it, but drop the radius where the device is likely to feel
+   it, and honour a request for less transparency. */
+@media (max-width: 430px) {
+  .material {
+    backdrop-filter: saturate(160%) blur(14px);
+    -webkit-backdrop-filter: saturate(160%) blur(14px);
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .material {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: var(--bg);
   }
 }

@@ -8,11 +8,18 @@
 <meta name="theme-color" content="#fbf6ee">
 <meta name="color-scheme" content="light dark">
 
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8D%AA%3C/text%3E%3C/svg%3E">
+<link rel="icon" href="assets/icons/favicon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="assets/icons/icon-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Cookie Tour">
+<meta name="format-detection" content="telephone=no">
 <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
-<link rel="stylesheet" href="assets/css/themes.css?v=b9bbecc8">
-<link rel="stylesheet" href="assets/css/app.css?v=b9bbecc8">
-<link rel="stylesheet" href="assets/css/views.css?v=b9bbecc8">
+<link rel="stylesheet" href="assets/css/themes.css?v=6fe1afa3">
+<link rel="stylesheet" href="assets/css/app.css?v=6fe1afa3">
+<link rel="stylesheet" href="assets/css/views.css?v=6fe1afa3">
 
 <script>
   /* Set the theme before first paint so there is no flash of the wrong one. */
@@ -37,6 +44,10 @@
     <section id="view-map" class="view is-active" role="tabpanel" aria-labelledby="tab-map">
       <div class="map-wrap">
         <div id="map" role="application" aria-label="Map of Baltimore cookie stops"></div>
+        <button class="icon-btn material locate-btn" id="locate-me" type="button"
+                    aria-label="Show roughly where I am">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3.4"/><path d="M12 2v3M12 19v3M22 12h-3M5 12H2"/><circle cx="12" cy="12" r="8.4"/></svg>
+            </button>
 
         <div class="map-chrome">
           <div class="map-chrome__row">
@@ -47,10 +58,7 @@
               <button role="radio" aria-checked="false" data-filter="open">Open now</button>
               <button role="radio" aria-checked="false" data-filter="picked">Picked</button>
             </div>
-            <button class="icon-btn material locate-btn" id="locate-me" type="button"
-                    aria-label="Show roughly where I am">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3.4"/><path d="M12 2v3M12 19v3M22 12h-3M5 12H2"/><circle cx="12" cy="12" r="8.4"/></svg>
-            </button>
+            
           </div>
         </div>
       </div>
@@ -252,6 +260,6 @@
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script src="vendor/leaflet/leaflet.js"></script>
-<script type="module" src="assets/js/app.js?v=b9bbecc8"></script>
+<script type="module" src="assets/js/app.js?v=6fe1afa3"></script>
 </body>
 </html>

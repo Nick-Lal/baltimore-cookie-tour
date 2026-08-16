@@ -26,12 +26,19 @@ const assets = [
   ...globSync('assets/css/*.css', { cwd: root }),
   ...globSync('assets/js/**/*.js', { cwd: root }),
   ...globSync('data/*.json', { cwd: root }),
+  'index.html',
+  'sw.js',
 ].sort();
 
+const BUILD_LINE = /const BUILD = '[^']*';/;
 const hash = createHash('sha256');
 for (const rel of assets) {
   hash.update(rel);
-  hash.update(readFileSync(join(root, rel), 'utf8').replace(STAMP, ''));
+  hash.update(
+    readFileSync(join(root, rel), 'utf8')
+      .replace(STAMP, '')
+      .replace(BUILD_LINE, "const BUILD = '';")  // ignore the stamp we are about to write
+  );
 }
 const version = hash.digest('hex').slice(0, 8);
 
@@ -55,6 +62,15 @@ for (const rel of globSync('assets/js/**/*.js', { cwd: root })) {
   const after = before
     .replace(STAMP, '')
     .replace(/(from\s+'(?:\.\.?\/)[^']+\.js)'/g, `$1?v=${version}'`);
+  if (after !== before) { writeFileSync(p, after); touched++; }
+}
+
+// The service worker's cache name carries the build id, so a deploy retires
+// the previous cache instead of serving last week's bug forever.
+{
+  const p = join(root, 'sw.js');
+  const before = readFileSync(p, 'utf8');
+  const after = before.replace(BUILD_LINE, `const BUILD = '${version}';`);
   if (after !== before) { writeFileSync(p, after); touched++; }
 }
 
