@@ -410,7 +410,7 @@ create policy tasters_update_self on public.tasters
 -- reference their author, so allowing self-deletion would be a back door to
 -- erasing your own scores.
 
--- parties: visible only to members, and the hash is never granted anyway
+-- parties: visible only to members, and code_hash is excluded from the grant
 drop policy if exists parties_select_member on public.parties;
 create policy parties_select_member on public.parties
   for select to authenticated using (id in (select public.my_party_ids()));
@@ -457,7 +457,10 @@ grant select on public.rating_events to anon, authenticated;
 grant insert (taster_id, item_key, chocolate, texture, dough, salt, structure,
               freshness, price_paid, notes, visited_on, rubric_version)
   on public.rating_events to authenticated;
-grant select                 on public.parties             to authenticated;
+-- Column-level again, and this one matters: a table-level grant here would
+-- hand every party member the code_hash for their own party, which the comment
+-- above the parties table claims never happens. Now it is actually true.
+grant select (id, label, created_by, created_at) on public.parties to authenticated;
 grant select                 on public.party_members       to authenticated;
 grant select                 on public.ratings_current     to anon, authenticated;
 grant select                 on public.rating_feed         to anon, authenticated;
