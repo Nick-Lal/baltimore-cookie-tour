@@ -65,12 +65,27 @@ for (const rel of globSync('assets/js/**/*.js', { cwd: root })) {
   if (after !== before) { writeFileSync(p, after); touched++; }
 }
 
-// The service worker's cache name carries the build id, so a deploy retires
-// the previous cache instead of serving last week's bug forever.
+/*
+ * The service worker's cache name carries the build id, so a deploy retires the
+ * previous cache instead of serving last week's bug forever.
+ *
+ * The PRECACHE list needs the same stamp on its CSS and JS. Without it the
+ * worker warms the cache under bare URLs while the page asks for stamped ones,
+ * and because the fetch handler matches with ignoreSearch: false none of those
+ * entries is ever hit. Every asset then gets fetched a second time on the first
+ * load after each deploy, which is exactly the load where the network is least
+ * likely to be there.
+ *
+ * Only CSS and JS are stamped. './' and index.html are navigations and carry no
+ * query, and the JSON under data/ is fetched at runtime without one.
+ */
 {
   const p = join(root, 'sw.js');
   const before = readFileSync(p, 'utf8');
-  const after = before.replace(BUILD_LINE, `const BUILD = '${version}';`);
+  const after = before
+    .replace(BUILD_LINE, `const BUILD = '${version}';`)
+    .replace(/^(\s*'\.\/assets\/(?:css|js)\/[^'?]+)(?:\?v=[0-9a-f]{8})?',$/gm,
+             `$1?v=${version}',`);
   if (after !== before) { writeFileSync(p, after); touched++; }
 }
 

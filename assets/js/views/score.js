@@ -1,9 +1,9 @@
 /* Scoring: pick a stop, pick an item, score it against the anchored rubric. */
 
-import { el, icon, ICONS, clear, toast, money } from '../lib/dom.js?v=26082944';
-import { state, subscribe, emit, stopById } from '../lib/state.js?v=26082944';
-import { totalScore, recipeScore, requestPersistence } from '../lib/storage.js?v=26082944';
-import { CLUSTER_COLOURS } from './stops.js?v=26082944';
+import { el, icon, ICONS, clear, toast, money } from '../lib/dom.js?v=57c75c85';
+import { state, subscribe, emit, stopById } from '../lib/state.js?v=57c75c85';
+import { totalScore, recipeScore, requestPersistence } from '../lib/storage.js?v=57c75c85';
+import { CLUSTER_COLOURS } from './stops.js?v=57c75c85';
 
 let draft = null;
 

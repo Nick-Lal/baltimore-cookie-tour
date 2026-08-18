@@ -11,7 +11,7 @@
  * is an excellent way to serve last week's bug forever.
  */
 
-const BUILD = '26082944';
+const BUILD = '57c75c85';
 const SHELL = `cookietour-shell-${BUILD}`;
 const TILES = `cookietour-tiles-${BUILD}`;
 const TILE_LIMIT = 300;
@@ -22,21 +22,21 @@ const PRECACHE = [
   './',
   './index.html',
   './manifest.webmanifest',
-  './assets/css/themes.css',
-  './assets/css/app.css',
-  './assets/css/views.css',
-  './assets/js/app.js',
-  './assets/js/themes.js',
-  './assets/js/lib/dom.js',
-  './assets/js/lib/geo.js',
-  './assets/js/lib/state.js',
-  './assets/js/lib/storage.js',
-  './assets/js/lib/routing.js',
-  './assets/js/views/stops.js',
-  './assets/js/views/route.js',
-  './assets/js/views/score.js',
-  './assets/js/views/results.js',
-  './assets/js/views/settings.js',
+  './assets/css/themes.css?v=57c75c85',
+  './assets/css/app.css?v=57c75c85',
+  './assets/css/views.css?v=57c75c85',
+  './assets/js/app.js?v=57c75c85',
+  './assets/js/themes.js?v=57c75c85',
+  './assets/js/lib/dom.js?v=57c75c85',
+  './assets/js/lib/geo.js?v=57c75c85',
+  './assets/js/lib/state.js?v=57c75c85',
+  './assets/js/lib/storage.js?v=57c75c85',
+  './assets/js/lib/routing.js?v=57c75c85',
+  './assets/js/views/stops.js?v=57c75c85',
+  './assets/js/views/route.js?v=57c75c85',
+  './assets/js/views/score.js?v=57c75c85',
+  './assets/js/views/results.js?v=57c75c85',
+  './assets/js/views/settings.js?v=57c75c85',
   './data/stops.json',
   './data/rubric.json',
   './data/matrix.json',
@@ -160,7 +160,8 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Everything else same-origin: cache first, since the URLs carry a build hash.
+  // Everything else same-origin: cache first, since the URLs carry a build hash
+  // and PRECACHE is stamped to match.
   event.respondWith((async () => {
     const hit = await caches.match(request, { ignoreSearch: false });
     if (hit) return hit;
@@ -172,10 +173,13 @@ self.addEventListener('fetch', (event) => {
       }
       return res;
     } catch {
-      // A versioned asset that is not cached: try again ignoring the ?v= query,
-      // which is usually the same file from the previous build.
-      const loose = await caches.match(request, { ignoreSearch: true });
-      if (loose) return loose;
+      // No ignoreSearch fallback here. It used to exist because PRECACHE held
+      // bare URLs while the page asked for stamped ones, so dropping the query
+      // was the only way the two ever met. Now the stamper writes the same
+      // stamp into PRECACHE, the exact match above hits, and the loose match
+      // could only ever return an asset from a different build than the rest of
+      // the page. Mixing module versions is the precise failure the stamp
+      // exists to prevent, so fail honestly instead.
       throw new Error('offline and uncached: ' + url.pathname);
     }
   })());

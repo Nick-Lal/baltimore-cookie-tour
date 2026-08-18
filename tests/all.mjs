@@ -9,6 +9,7 @@ const suites = [
   ['imports.mjs', []],
   ['run.mjs', []],
   ['outbox.mjs', []],
+  ['consistency.mjs', []],
   ['contrast.mjs', []],
 ];
 
