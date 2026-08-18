@@ -11,7 +11,7 @@
  * is an excellent way to serve last week's bug forever.
  */
 
-const BUILD = '57c75c85';
+const BUILD = '0de767c1';
 const SHELL = `cookietour-shell-${BUILD}`;
 const TILES = `cookietour-tiles-${BUILD}`;
 const TILE_LIMIT = 300;
@@ -22,21 +22,21 @@ const PRECACHE = [
   './',
   './index.html',
   './manifest.webmanifest',
-  './assets/css/themes.css?v=57c75c85',
-  './assets/css/app.css?v=57c75c85',
-  './assets/css/views.css?v=57c75c85',
-  './assets/js/app.js?v=57c75c85',
-  './assets/js/themes.js?v=57c75c85',
-  './assets/js/lib/dom.js?v=57c75c85',
-  './assets/js/lib/geo.js?v=57c75c85',
-  './assets/js/lib/state.js?v=57c75c85',
-  './assets/js/lib/storage.js?v=57c75c85',
-  './assets/js/lib/routing.js?v=57c75c85',
-  './assets/js/views/stops.js?v=57c75c85',
-  './assets/js/views/route.js?v=57c75c85',
-  './assets/js/views/score.js?v=57c75c85',
-  './assets/js/views/results.js?v=57c75c85',
-  './assets/js/views/settings.js?v=57c75c85',
+  './assets/css/themes.css?v=0de767c1',
+  './assets/css/app.css?v=0de767c1',
+  './assets/css/views.css?v=0de767c1',
+  './assets/js/app.js?v=0de767c1',
+  './assets/js/themes.js?v=0de767c1',
+  './assets/js/lib/dom.js?v=0de767c1',
+  './assets/js/lib/geo.js?v=0de767c1',
+  './assets/js/lib/state.js?v=0de767c1',
+  './assets/js/lib/storage.js?v=0de767c1',
+  './assets/js/lib/routing.js?v=0de767c1',
+  './assets/js/views/stops.js?v=0de767c1',
+  './assets/js/views/route.js?v=0de767c1',
+  './assets/js/views/score.js?v=0de767c1',
+  './assets/js/views/results.js?v=0de767c1',
+  './assets/js/views/settings.js?v=0de767c1',
   './data/stops.json',
   './data/rubric.json',
   './data/matrix.json',

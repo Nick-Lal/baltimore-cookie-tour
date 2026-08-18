@@ -15,7 +15,7 @@ import { dirname, join } from 'node:path';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const load = (p) => JSON.parse(readFileSync(join(root, p), 'utf8'));
 
-const { openAt, suggestMode, MODES, LONG_LEG_KM } = await import('../assets/js/lib/routing.js');
+const { openAt, suggestMode, schedule, MODES, LONG_LEG_KM } = await import('../assets/js/lib/routing.js');
 const { optimiseOrder, haversineKm, decodePolyline } = await import('../assets/js/lib/geo.js');
 const { totalScore, recipeScore, validateRating, validateName, validatePartyCode, FACTORS, WEIGHTS, itemKey } =
   await import('../assets/js/lib/storage.js');
@@ -311,6 +311,69 @@ check('every factor has anchors at both ends', () => {
       ok(f.anchors['1'] && f.anchors['10'], `${f.id} missing an end anchor`);
       ok(Object.keys(f.anchors).length >= 5, `${f.id} needs more anchors`);
     }
+  }
+});
+
+/* ------------------------------------------------------- closed all day -- */
+/*
+ * A stop closed all Sunday used to be reported as "will have shut", because
+ * closesBefore() returns true when there are no hours at all. That is the
+ * opposite of useful: it tells someone to start earlier, when no start time on
+ * that day would have worked. The three closures need different advice.
+ */
+
+// Sunday is index 0. Open Monday to Saturday, shut on Sunday.
+const shutSundays = {
+  id: 'test-shut-sundays',
+  hours: [null, ...Array(6).fill({ open: '08:00', close: '17:00' })],
+};
+const openDaily = {
+  id: 'test-open-daily',
+  hours: Array(7).fill({ open: '08:00', close: '17:00' }),
+};
+
+// 2026-08-16 is a Sunday; 2026-08-17 a Monday.
+const sundayNoon = new Date(2026, 7, 16, 12, 0, 0);
+const mondayNoon = new Date(2026, 7, 17, 12, 0, 0);
+const mondayDawn = new Date(2026, 7, 17, 6, 0, 0);
+const mondayNight = new Date(2026, 7, 17, 21, 0, 0);
+
+check('a stop shut all day reads as closed-today, not closed-by-then', () => {
+  const [s] = schedule([shutSundays], [], sundayNoon, { minutesPerStop: 20 });
+  eq(s.status, 'closed', 'status');
+  eq(s.problem, 'closed-today', 'problem');
+});
+
+check('arriving before opening is still not-open-yet', () => {
+  const [s] = schedule([openDaily], [], mondayDawn, { minutesPerStop: 20 });
+  eq(s.problem, 'not-open-yet', 'problem');
+});
+
+check('arriving after closing is still closed-by-then', () => {
+  const [s] = schedule([openDaily], [], mondayNight, { minutesPerStop: 20 });
+  eq(s.problem, 'closed-by-then', 'problem');
+});
+
+check('an open stop has no problem at all', () => {
+  const [s] = schedule([shutSundays], [], mondayNoon, { minutesPerStop: 20 });
+  eq(s.status, 'open', 'status');
+  eq(s.problem, null, 'problem');
+});
+
+check('the day is taken from arrival, not from the start of the tour', () => {
+  // Start late on Saturday with a long dwell so the second stop lands on Sunday.
+  const saturdayLate = new Date(2026, 7, 15, 23, 0, 0);
+  const [, second] = schedule([openDaily, shutSundays], [], saturdayLate, { minutesPerStop: 120 });
+  eq(second.arrive.getDay(), 0, 'second stop lands on a Sunday');
+  eq(second.problem, 'closed-today', 'problem');
+});
+
+check('the real stops that shut on Sundays are reported that way', () => {
+  for (const id of ['aunt-kellys', 'patisserie-poupon']) {
+    const stop = stops.find((s) => s.id === id);
+    ok(stop, `${id} is still in the data`);
+    const [s] = schedule([stop], [], sundayNoon, { minutesPerStop: 20 });
+    eq(s.problem, 'closed-today', `${id} on a Sunday`);
   }
 });
 

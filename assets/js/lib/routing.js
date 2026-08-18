@@ -17,7 +17,7 @@
  * as though it were measured.
  */
 
-import { haversineKm, decodePolyline } from './geo.js?v=57c75c85';
+import { haversineKm, decodePolyline } from './geo.js?v=0de767c1';
 
 /*
  * A 14x14 street-network matrix for both profiles is committed to the repo,
@@ -328,7 +328,15 @@ export function schedule(stops, legs, startAt, { minutesPerStop = 20 } = {}) {
     const status = openAt(stop, t);
     let problem = null;
     if (status === 'closed') {
-      problem = closesBefore(stop, t) ? 'closed-by-then' : 'not-open-yet';
+      /* Three different closures, which the interface has to tell apart.
+         "Shut by then" means you are too late and starting earlier fixes it.
+         "Not open yet" means you are too early and starting later fixes it.
+         Closed all day means neither helps and you need a different day, which
+         is worth saying plainly rather than sending someone to a locked door
+         half an hour early. */
+      problem = !stop.hours?.[t.getDay()] ? 'closed-today'
+        : closesBefore(stop, t) ? 'closed-by-then'
+        : 'not-open-yet';
     } else if (status === 'unknown') {
       problem = 'unknown-hours';
     }
@@ -340,6 +348,9 @@ export function schedule(stops, legs, startAt, { minutesPerStop = 20 } = {}) {
 }
 
 /** Did we arrive after closing rather than before opening? */
+/* Only meaningful on a day the stop actually opens. schedule() checks for a
+   closed day before calling this, because "shut by then" and "shut all day"
+   need different advice. */
 function closesBefore(stop, when) {
   const hours = stop.hours?.[when.getDay()];
   if (!hours) return true;

@@ -1,13 +1,13 @@
 /* Route building: order, modes, timing and the itinerary. */
 
-import { el, icon, ICONS, clear, toast, money } from '../lib/dom.js?v=57c75c85';
-import { state, subscribe, pickedStops, moveStop, setOrder, togglePick, shareUrl } from '../lib/state.js?v=57c75c85';
+import { el, icon, ICONS, clear, toast, money } from '../lib/dom.js?v=0de767c1';
+import { state, subscribe, pickedStops, moveStop, setOrder, togglePick, shareUrl } from '../lib/state.js?v=0de767c1';
 import {
   MODES, routeItinerary, itinerarySummary, suggestMode, modeOptionsFor,
   legAdvisory, schedule, matrixKm, SCOOTER_PRICING,
-} from '../lib/routing.js?v=57c75c85';
-import { optimiseOrder, formatKm, formatMins } from '../lib/geo.js?v=57c75c85';
-import { drawRoute, fitToStops, CLUSTER_COLOURS } from './stops.js?v=57c75c85';
+} from '../lib/routing.js?v=0de767c1';
+import { optimiseOrder, formatKm, formatMins } from '../lib/geo.js?v=0de767c1';
+import { drawRoute, fitToStops, CLUSTER_COLOURS } from './stops.js?v=0de767c1';
 
 let startAt = defaultStart();
 let dwellMin = 20;
@@ -28,6 +28,13 @@ const timeStr = (d) =>
 
 const inputValue = (d) =>
   `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+
+/* Local, not toISOString(): that converts to UTC first, so any evening east of
+   Greenwich hands the date input tomorrow. */
+const dateValue = (d) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+const dayName = (d) => d.toLocaleDateString([], { weekday: 'long' });
 
 /* ------------------------------------------------------------------ build */
 
@@ -86,7 +93,8 @@ function stopCard(stop, i, total, scheduled) {
             problem ? el('span', {
               class: 'dot-shut',
               style: { fontWeight: '600' },
-              text: problem === 'closed-by-then' ? '  ·  shut by then'
+              text: problem === 'closed-today' ? `  ·  closed ${dayName(arrive ?? startAt)}s`
+                : problem === 'closed-by-then' ? '  ·  shut by then'
                 : problem === 'not-open-yet' ? '  ·  not open yet'
                 : '  ·  hours unknown',
             }) : null,
@@ -185,8 +193,24 @@ function summaryCard(sum) {
 
 function controlsCard() {
   return el('div', { class: 'card card__pad stack', style: { '--gap': 'var(--sp-4)' } }, [
+    /* The day matters as much as the hour. Opening times differ by weekday and
+       several of these places shut entirely on a Sunday or Monday, so planning
+       Saturday's date on a Thursday used to be checked against Thursday. */
     el('div', { class: 'row row--between', style: { gap: 'var(--sp-4)' } }, [
-      el('div', { style: { flex: '1' } }, [
+      el('div', { style: { flex: '1', minWidth: 0 } }, [
+        el('label', { class: 'form-label', for: 'start-date', text: 'Day' }),
+        el('input', {
+          class: 'field', id: 'start-date', type: 'date', value: dateValue(startAt),
+          onchange: (e) => {
+            const [y, mo, d] = e.target.value.split('-').map(Number);
+            if (Number.isFinite(y) && Number.isFinite(mo) && Number.isFinite(d)) {
+              startAt.setFullYear(y, mo - 1, d);
+              render();
+            }
+          },
+        }),
+      ]),
+      el('div', { style: { flex: '1', minWidth: 0 } }, [
         el('label', { class: 'form-label', for: 'start-time', text: 'Start at' }),
         el('input', {
           class: 'field', id: 'start-time', type: 'time', value: inputValue(startAt),
@@ -196,17 +220,17 @@ function controlsCard() {
           },
         }),
       ]),
-      el('div', { style: { flex: '1' } }, [
-        el('label', { class: 'form-label', for: 'dwell', text: 'Minutes per stop' }),
-        el('input', {
-          class: 'field', id: 'dwell', type: 'number', min: '5', max: '90', step: '5',
-          value: String(dwellMin),
-          onchange: (e) => {
-            const v = Number(e.target.value);
-            if (v >= 5 && v <= 90) { dwellMin = v; render(); }
-          },
-        }),
-      ]),
+    ]),
+    el('div', {}, [
+      el('label', { class: 'form-label', for: 'dwell', text: 'Minutes per stop' }),
+      el('input', {
+        class: 'field', id: 'dwell', type: 'number', min: '5', max: '90', step: '5',
+        value: String(dwellMin),
+        onchange: (e) => {
+          const v = Number(e.target.value);
+          if (v >= 5 && v <= 90) { dwellMin = v; render(); }
+        },
+      }),
     ]),
     el('div', { class: 'row', style: { gap: 'var(--sp-2)' } }, [
       el('button', {
@@ -267,7 +291,8 @@ export function render() {
     : `${stops.length} stops, in this order.`;
 
   const scheduled = schedule(stops, state.legs, startAt, { minutesPerStop: dwellMin });
-  const problems = scheduled.filter((s) => s.problem === 'closed-by-then' || s.problem === 'not-open-yet');
+  const problems = scheduled.filter((s) =>
+    s.problem === 'closed-today' || s.problem === 'closed-by-then' || s.problem === 'not-open-yet');
 
   host.append(el('div', { class: 'pad', style: { marginBottom: 'var(--sp-4)' } }, controlsCard()));
 
@@ -282,10 +307,13 @@ export function render() {
         icon(ICONS.warn, { size: 18 }),
         el('span', {}, [
           problems.length === 1
-            ? `${problems[0].stop.name} is a problem at this start time: `
-            : `${problems.length} stops are a problem at this start time: `,
+            ? `${problems[0].stop.name} is a problem on this day: `
+            : `${problems.length} stops are a problem on this day: `,
           problems.map((p) =>
-            `${p.stop.name} ${p.problem === 'closed-by-then' ? 'will have shut' : 'is not open yet'}`
+            `${p.stop.name} ${
+              p.problem === 'closed-today' ? `is closed on ${dayName(p.arrive)}s`
+              : p.problem === 'closed-by-then' ? 'will have shut'
+              : 'is not open yet'}`
           ).join(', '),
           '. Try a different start time or reorder.',
         ]),
