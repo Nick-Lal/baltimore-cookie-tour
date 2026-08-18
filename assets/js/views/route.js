@@ -1,13 +1,10 @@
 /* Route building: order, modes, timing and the itinerary. */
 
-import { el, icon, ICONS, clear, toast, money } from '../lib/dom.js?v=0de767c1';
-import { state, subscribe, pickedStops, moveStop, setOrder, togglePick, shareUrl } from '../lib/state.js?v=0de767c1';
-import {
-  MODES, routeItinerary, itinerarySummary, suggestMode, modeOptionsFor,
-  legAdvisory, schedule, matrixKm, SCOOTER_PRICING,
-} from '../lib/routing.js?v=0de767c1';
-import { optimiseOrder, formatKm, formatMins } from '../lib/geo.js?v=0de767c1';
-import { drawRoute, fitToStops, CLUSTER_COLOURS } from './stops.js?v=0de767c1';
+import { el, icon, ICONS, clear, toast, money } from '../lib/dom.js?v=a8ce5f64';
+import { state, subscribe, pickedStops, moveStop, setOrder, togglePick, shareUrl } from '../lib/state.js?v=a8ce5f64';
+import { MODES, routeItinerary, itinerarySummary, suggestMode, modeOptionsFor, legAdvisory, schedule, matrixKm, SCOOTER_PRICING, directionsUrl } from '../lib/routing.js?v=a8ce5f64';
+import { optimiseOrder, formatKm, formatMins } from '../lib/geo.js?v=a8ce5f64';
+import { drawRoute, fitToStops, CLUSTER_COLOURS } from './stops.js?v=a8ce5f64';
 
 let startAt = defaultStart();
 let dwellMin = 20;
@@ -164,6 +161,14 @@ function legCard(leg, i, stops) {
       ]),
       el('div', { class: 'mode-options' }, optionButtons),
       advisory ? el('p', { class: 'footnote secondary', style: { marginTop: 'var(--sp-2)' }, text: advisory }) : null,
+      /* The leg is where the plan runs out and the walking starts, so this is
+         where the handover to a real maps app belongs. It carries both ends, so
+         it opens as directions rather than a dropped pin. */
+      el('a', {
+        class: 'leg__nav footnote',
+        href: directionsUrl(stops[i + 1], stops[i]),
+        target: '_blank', rel: 'noopener noreferrer',
+      }, `Directions to ${stops[i + 1].name}`),
     ]),
   ]);
 }

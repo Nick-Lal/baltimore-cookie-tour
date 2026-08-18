@@ -17,7 +17,7 @@
  * as though it were measured.
  */
 
-import { haversineKm, decodePolyline } from './geo.js?v=0de767c1';
+import { haversineKm, decodePolyline } from './geo.js?v=a8ce5f64';
 
 /*
  * A 14x14 street-network matrix for both profiles is committed to the repo,
@@ -401,4 +401,51 @@ export function openAt(stop, when) {
 export function clearRouteCache() {
   cache = {};
   try { localStorage.removeItem(CACHE_KEY); } catch { /* ignore */ }
+}
+
+/* --------------------------------------------------------- handing over ---
+ * At some point you stop reading the plan and start walking, and the phone
+ * needs to become a compass. This site does not do turn by turn: it says which
+ * way to travel and roughly how long, and the maps app people already have does
+ * the rest, with their voice settings and their transit passes.
+ *
+ * Apple and Google want different URLs, and getting it wrong is not a cosmetic
+ * failure. maps.apple.com on an iPhone opens Maps with directions loaded; a
+ * google.com/maps link opens a browser tab that asks you to install something.
+ * The platform check is on the vendor rather than the user agent string, since
+ * every browser on iOS reports itself as Safari anyway.
+ *
+ * Scooters have no travel mode in either app. Walking is the honest fallback:
+ * the path is the same, only the timing differs, and the timing is on the page
+ * you just left.
+ */
+export function isAppleDevice() {
+  if (typeof navigator === 'undefined') return false;
+  const p = navigator.platform ?? '';
+  // iPadOS reports MacIntel with a touch screen, so the touch count matters.
+  return /iPhone|iPad|iPod/.test(p)
+    || (p === 'MacIntel' && (navigator.maxTouchPoints ?? 0) > 1)
+    || /Mac/.test(p);
+}
+
+/** A link that opens the phone's own maps app with directions to a stop. */
+export function directionsUrl(to, from = null) {
+  const dest = `${to.lat},${to.lng}`;
+  if (isAppleDevice()) {
+    const parts = [`daddr=${dest}`, 'dirflg=w'];
+    if (from) parts.unshift(`saddr=${from.lat},${from.lng}`);
+    return `https://maps.apple.com/?${parts.join('&')}`;
+  }
+  const parts = ['api=1', `destination=${dest}`, 'travelmode=walking'];
+  if (from) parts.push(`origin=${from.lat},${from.lng}`);
+  return `https://www.google.com/maps/dir/?${parts.join('&')}`;
+}
+
+/** A link that just shows where a place is, with its name on the pin. */
+export function placeUrl(stop) {
+  const at = `${stop.lat},${stop.lng}`;
+  const name = encodeURIComponent(stop.branch ? `${stop.name}, ${stop.branch}` : stop.name);
+  return isAppleDevice()
+    ? `https://maps.apple.com/?q=${name}&ll=${at}`
+    : `https://www.google.com/maps/search/?api=1&query=${at}`;
 }

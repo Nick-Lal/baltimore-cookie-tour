@@ -1,9 +1,9 @@
 /* Map, stop list and stop detail. */
 
-import { el, icon, ICONS, clear, toast, wireSegmented, DAY_NAMES, prettyTime, money } from '../lib/dom.js?v=0de767c1';
-import { state, subscribe, emit, stopById, isPicked, togglePick, setOrder, clearPicks, DEFAULT_ROUTE } from '../lib/state.js?v=0de767c1';
-import { openAt } from '../lib/routing.js?v=0de767c1';
-import { boundsOf, haversineKm } from '../lib/geo.js?v=0de767c1';
+import { el, icon, ICONS, clear, toast, wireSegmented, DAY_NAMES, prettyTime, money } from '../lib/dom.js?v=a8ce5f64';
+import { state, subscribe, emit, stopById, isPicked, togglePick, setOrder, clearPicks, DEFAULT_ROUTE } from '../lib/state.js?v=a8ce5f64';
+import { openAt, placeUrl } from '../lib/routing.js?v=a8ce5f64';
+import { boundsOf, haversineKm } from '../lib/geo.js?v=a8ce5f64';
 
 export const CLUSTER_COLOURS = {
   hampden: '#E4572E',
@@ -347,9 +347,12 @@ export function showDetail(stopId) {
           type: 'button',
           onclick: () => { togglePick(stop.id); showDetail(stop.id); },
         }, picked ? 'On your route' : 'Add to route'),
+        /* Was an openstreetmap.org link, which on a phone opens a website
+           showing a pin. What you want on a street corner is the maps app you
+           already use, already pointed at the door. */
         el('a', {
           class: 'btn btn--tinted',
-          href: `https://www.openstreetmap.org/?mlat=${stop.lat}&mlon=${stop.lng}#map=18/${stop.lat}/${stop.lng}`,
+          href: placeUrl(stop),
           target: '_blank', rel: 'noopener noreferrer',
         }, 'Open in maps'),
       ]),

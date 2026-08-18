@@ -15,7 +15,7 @@ import { dirname, join } from 'node:path';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const load = (p) => JSON.parse(readFileSync(join(root, p), 'utf8'));
 
-const { openAt, suggestMode, schedule, MODES, LONG_LEG_KM } = await import('../assets/js/lib/routing.js');
+const { openAt, suggestMode, schedule, directionsUrl, placeUrl, MODES, LONG_LEG_KM } = await import('../assets/js/lib/routing.js');
 const { optimiseOrder, haversineKm, decodePolyline } = await import('../assets/js/lib/geo.js');
 const { totalScore, recipeScore, validateRating, validateName, validatePartyCode, FACTORS, WEIGHTS, itemKey } =
   await import('../assets/js/lib/storage.js');
@@ -374,6 +374,63 @@ check('the real stops that shut on Sundays are reported that way', () => {
     ok(stop, `${id} is still in the data`);
     const [s] = schedule([stop], [], sundayNoon, { minutesPerStop: 20 });
     eq(s.problem, 'closed-today', `${id} on a Sunday`);
+  }
+});
+
+/* ------------------------------------------------------ maps handover ---- */
+
+const leon = { name: 'Cafe Dear Leon', branch: 'Canton', lat: 39.2812, lng: -76.5766 };
+const kneads = { name: 'Kneads Bakeshop', lat: 39.2841, lng: -76.6008 };
+
+function asPlatform(apple, fn) {
+  const original = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
+  Object.defineProperty(globalThis, 'navigator', {
+    value: apple
+      ? { platform: 'iPhone', maxTouchPoints: 5 }
+      : { platform: 'Linux armv8l', maxTouchPoints: 5 },
+    configurable: true, writable: true,
+  });
+  try { return fn(); }
+  finally {
+    if (original) Object.defineProperty(globalThis, 'navigator', original);
+    else delete globalThis.navigator;
+  }
+}
+
+check('an iPhone gets an Apple Maps link with walking directions', () => {
+  const url = asPlatform(true, () => directionsUrl(kneads, leon));
+  ok(url.startsWith('https://maps.apple.com/?'), `wrong host: ${url}`);
+  ok(url.includes('dirflg=w'), 'walking mode missing');
+  ok(url.includes('saddr=39.2812,-76.5766'), 'origin missing');
+  ok(url.includes('daddr=39.2841,-76.6008'), 'destination missing');
+});
+
+check('everything else gets Google Maps directions', () => {
+  const url = asPlatform(false, () => directionsUrl(kneads, leon));
+  ok(url.startsWith('https://www.google.com/maps/dir/?'), `wrong host: ${url}`);
+  ok(url.includes('travelmode=walking'), 'walking mode missing');
+  ok(url.includes('origin=39.2812,-76.5766'), 'origin missing');
+  ok(url.includes('destination=39.2841,-76.6008'), 'destination missing');
+});
+
+check('a leg with no known origin still produces a destination', () => {
+  for (const apple of [true, false]) {
+    const url = asPlatform(apple, () => directionsUrl(kneads));
+    ok(url.includes('39.2841'), 'destination missing');
+    ok(!/saddr|origin=/.test(url), 'invented an origin it does not have');
+  }
+});
+
+check('a place link carries the name so the pin is labelled', () => {
+  const url = asPlatform(true, () => placeUrl(leon));
+  ok(url.includes('Cafe%20Dear%20Leon%2C%20Canton'), `name not encoded: ${url}`);
+  ok(url.includes('ll=39.2812,-76.5766'), 'coordinates missing');
+});
+
+check('no maps link points at openstreetmap any more', () => {
+  for (const apple of [true, false]) {
+    const urls = asPlatform(apple, () => [directionsUrl(kneads, leon), placeUrl(leon)]);
+    for (const u of urls) ok(!/openstreetmap/.test(u), `still an OSM link: ${u}`);
   }
 });
 

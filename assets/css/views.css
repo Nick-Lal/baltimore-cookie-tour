@@ -466,3 +466,15 @@ body.is-offline .tabbar::before {
   .chip { font-size: var(--t-footnote); }
   .chips { gap: 3px; }
 }
+
+/* Handover to the phone's maps app, at the point the plan stops being useful. */
+.leg__nav {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-top: var(--sp-1);
+  color: var(--tint);
+  font-weight: 500;
+  text-decoration: none;
+}
+.leg__nav:active { opacity: 0.6; }
