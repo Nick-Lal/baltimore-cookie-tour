@@ -1,15 +1,15 @@
 /* Boot: load data, wire the shell, hand off to the views. */
 
-import { initTheme, applyTheme } from './themes.js?v=a8ce5f64';
-import { toast } from './lib/dom.js?v=a8ce5f64';
-import { state, emit, subscribe, readHash, restorePicks, readPartyFromHash } from './lib/state.js?v=a8ce5f64';
-import { createStore } from './lib/storage.js?v=a8ce5f64';
-import { loadMatrix } from './lib/routing.js?v=a8ce5f64';
-import { initMap, initStopsView, renderStopList, renderMarkers, hideDetail, fitToStops, renderPicker, initPickerView } from './views/stops.js?v=a8ce5f64';
-import { initRouteView, rebuildRoute, render as renderRoute } from './views/route.js?v=a8ce5f64';
-import { initScoreView, render as renderScore } from './views/score.js?v=a8ce5f64';
-import { initResultsView, refresh as refreshResults } from './views/results.js?v=a8ce5f64';
-import { initSettingsView, render as renderSettings } from './views/settings.js?v=a8ce5f64';
+import { initTheme, applyTheme } from './themes.js?v=4fe7b37d';
+import { toast } from './lib/dom.js?v=4fe7b37d';
+import { state, emit, subscribe, readHash, restorePicks, readPartyFromHash } from './lib/state.js?v=4fe7b37d';
+import { createStore } from './lib/storage.js?v=4fe7b37d';
+import { loadMatrix } from './lib/routing.js?v=4fe7b37d';
+import { initMap, initStopsView, renderStopList, renderMarkers, hideDetail, fitToStops, renderPicker, initPickerView } from './views/stops.js?v=4fe7b37d';
+import { initRouteView, rebuildRoute, render as renderRoute } from './views/route.js?v=4fe7b37d';
+import { initScoreView, render as renderScore } from './views/score.js?v=4fe7b37d';
+import { initResultsView, refresh as refreshResults } from './views/results.js?v=4fe7b37d';
+import { initSettingsView, render as renderSettings } from './views/settings.js?v=4fe7b37d';
 
 initTheme();
 
@@ -260,9 +260,20 @@ async function boot() {
 
   await loadMatrix();
 
-  state.store = await createStore();
-  state.taster = await state.store.getTaster();
-  if (state.taster?.theme) applyTheme(state.taster.theme);
+  /*
+   * The store is deliberately NOT awaited here.
+   *
+   * createStore() signs in, fetches a taster and loads party membership: three
+   * round trips to Postgres before it resolves. Awaiting it at this point meant
+   * the map, the stop list and the route all waited on the database, none of
+   * which need it. On a bad connection that was a blank screen for as long as
+   * the network took to admit defeat.
+   *
+   * So everything that works offline is built first, and the store is attached
+   * when it arrives. render() in settings.js and the save handler in score.js
+   * both cope with the gap, which lasts a second or two at most.
+   */
+  const storePromise = createStore();
 
   const show = initTabs();
   initSheet();
@@ -281,12 +292,18 @@ async function boot() {
   renderStopList();
   renderMarkers();
   fitToStops(state.stops);
-  renderSettings();
 
   // A shared link wins over anything stored. Otherwise restore the last route,
   // or seed the waterfront five on a genuinely first visit.
   const shared = readHash();
   if (!shared) restorePicks();
+
+  // Everything above works with no database at all. From here on it is needed,
+  // so this is the first point worth waiting at.
+  state.store = await storePromise;
+  state.taster = await state.store.getTaster();
+  if (state.taster?.theme) applyTheme(state.taster.theme);
+  renderSettings();
 
   // An invite link carries the party. Joining is the whole point of opening it,
   // so do it before the first results read rather than making them find a

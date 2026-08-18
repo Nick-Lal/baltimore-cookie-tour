@@ -57,7 +57,19 @@ for (const rel of files) {
   for (const m of src.matchAll(/(?:^|\s)(?:export\s+)?(?:async\s+)?function\s+(\w+)/g)) local.add(m[1]);
   for (const m of src.matchAll(/(?:^|\s)(?:export\s+)?(?:const|let|var|class)\s+(\w+)/g)) local.add(m[1]);
 
-  const body = src.replace(/^import[^;]+;$/gm, '');
+  /*
+   * Comments are not code. Without this, prose that names a function — "render()
+   * in settings.js copes with the gap" — is read as a call site and reported as
+   * a missing import, which trains people to ignore the output.
+   *
+   * The `://` guard keeps a URL inside a string from being treated as the start
+   * of a line comment. Getting that wrong would hide a real call rather than
+   * invent a fake one, so it fails in the safe direction either way.
+   */
+  const body = src
+    .replace(/^import[^;]+;$/gm, '')
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/(^|[^:])\/\/[^\n]*/g, '$1');
 
   for (const [name, from] of exported) {
     if (from === rel || imported.has(name) || local.has(name)) continue;

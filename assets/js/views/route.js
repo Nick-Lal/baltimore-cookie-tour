@@ -1,10 +1,10 @@
 /* Route building: order, modes, timing and the itinerary. */
 
-import { el, icon, ICONS, clear, toast, money } from '../lib/dom.js?v=a8ce5f64';
-import { state, subscribe, pickedStops, moveStop, setOrder, togglePick, shareUrl } from '../lib/state.js?v=a8ce5f64';
-import { MODES, routeItinerary, itinerarySummary, suggestMode, modeOptionsFor, legAdvisory, schedule, matrixKm, SCOOTER_PRICING, directionsUrl } from '../lib/routing.js?v=a8ce5f64';
-import { optimiseOrder, formatKm, formatMins } from '../lib/geo.js?v=a8ce5f64';
-import { drawRoute, fitToStops, CLUSTER_COLOURS } from './stops.js?v=a8ce5f64';
+import { el, icon, ICONS, clear, toast, money } from '../lib/dom.js?v=4fe7b37d';
+import { state, subscribe, pickedStops, moveStop, setOrder, togglePick, shareUrl } from '../lib/state.js?v=4fe7b37d';
+import { MODES, routeItinerary, itinerarySummary, suggestMode, modeOptionsFor, legAdvisory, schedule, matrixKm, SCOOTER_PRICING, directionsUrl } from '../lib/routing.js?v=4fe7b37d';
+import { optimiseOrder, formatKm, formatMins } from '../lib/geo.js?v=4fe7b37d';
+import { drawRoute, fitToStops, CLUSTER_COLOURS } from './stops.js?v=4fe7b37d';
 
 let startAt = defaultStart();
 let dwellMin = 20;

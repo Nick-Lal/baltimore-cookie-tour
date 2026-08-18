@@ -19,7 +19,7 @@
  * and not dropped. That is the whole subject of this file.
  */
 
-import { LocalAdapter, SupabaseAdapter } from '../assets/js/lib/storage.js';
+import { LocalAdapter, SupabaseAdapter, isNetworkError, withTimeout } from '../assets/js/lib/storage.js';
 
 /* ------------------------------------------------------------- harness --- */
 
@@ -224,6 +224,50 @@ acheck('switching to an unknown profile fails loudly instead of silently doing n
   let threw = null;
   try { await a.switchProfile('user-nope'); } catch (err) { threw = err.message; }
   if (!threw) throw new Error('switchProfile resolved for a profile that is not on the device');
+});
+
+acheck('a timed-out request counts as a network error, so its score is kept', async () => {
+  // AbortSignal reports a timeout by name, not by message. Getting this wrong
+  // is not cosmetic: flushOutbox only keeps rows whose failure isNetworkError
+  // says was the network, and drops the rest as permanently unacceptable. A
+  // misclassified timeout would throw away a cookie somebody actually ate.
+  const timeout = new Error('The operation was aborted.');
+  timeout.name = 'TimeoutError';
+  const abort = new Error('signal is aborted without reason');
+  abort.name = 'AbortError';
+  for (const err of [timeout, abort]) {
+    if (!isNetworkError(err)) throw new Error(`${err.name} not treated as a network error`);
+  }
+});
+
+acheck('a real rejection is still not mistaken for a network error', async () => {
+  const rls = new Error('new row violates row-level security policy');
+  if (isNetworkError(rls)) throw new Error('an RLS refusal would be retried forever');
+});
+
+acheck('withTimeout returns a signal, or nothing on an old browser', async () => {
+  const s = withTimeout(50);
+  if (s !== undefined && typeof s.aborted !== 'boolean') {
+    throw new Error('not an AbortSignal and not undefined');
+  }
+});
+
+acheck('a queued score survives a timeout and flushes afterwards', async () => {
+  store.clear();
+  const a = adapterAs('user-A', 'Nick');
+  a._writeOutbox([
+    { ...ROW('user-A', 'kneads-bakeshop:cc-chunk'), _queued_at: '2026-08-16T12:00:00Z', _taster_name: 'Nick' },
+  ]);
+  const timeout = new Error('The operation was aborted.');
+  timeout.name = 'TimeoutError';
+  a._rest = async () => { throw timeout; };
+  eq(await a.flushOutbox(), 0, 'sent while timing out');
+  eq(a._readOutbox().length, 1, 'row kept');
+
+  // Network comes back.
+  const b = adapterAs('user-A', 'Nick');
+  eq(await b.flushOutbox(), 1, 'sent after recovery');
+  eq(b._readOutbox().length, 0, 'queue drained');
 });
 
 /* ---------------------------------------------------------------- run --- */

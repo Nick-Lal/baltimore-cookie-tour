@@ -17,11 +17,35 @@
 
 export const RUBRIC_VERSION = '2.0.0';
 
+/*
+ * Every call to the database is bounded.
+ *
+ * A refused connection fails fast. A connection that opens and then stops
+ * answering — a captive portal, a cell handoff, a phone waking in a basement —
+ * hangs until the browser gives up, which can be over a minute. That used to be
+ * a minute of blank screen at boot, because nothing rendered until the store
+ * was ready.
+ *
+ * Ten seconds is chosen to be slower than any working request on a bad
+ * connection and faster than a person deciding the app is broken.
+ */
+const NET_TIMEOUT_MS = 10_000;
+
+export function withTimeout(ms = NET_TIMEOUT_MS) {
+  // AbortSignal.timeout is Safari 16+. Older phones simply get no timeout,
+  // which is what they had before, rather than a crash on boot.
+  try { return AbortSignal.timeout(ms); } catch { return undefined; }
+}
+
 /* navigator.onLine is not a reliable signal: a phone with one bar, a captive
    portal, or a stalled cell handoff all report online while every fetch fails.
    Treat the shape of the error as the truth. */
 export function isNetworkError(err) {
-  return !navigator.onLine || /failed to fetch|networkerror|network request|load failed|timeout|aborted/i.test(String(err && err.message));
+  if (!navigator.onLine) return true;
+  // A timed-out request is a network problem, and AbortSignal reports it by
+  // name rather than by message, so check both.
+  if (err && (err.name === 'TimeoutError' || err.name === 'AbortError')) return true;
+  return /failed to fetch|networkerror|network request|load failed|timeout|aborted/i.test(String(err && err.message));
 }
 
 export const FACTORS = {
@@ -454,6 +478,7 @@ export class SupabaseAdapter {
       method: 'POST',
       headers: { apikey: this.anonKey, 'Content-Type': 'application/json' },
       body: JSON.stringify({ data: {} }),
+      signal: withTimeout(),
     });
     if (!res.ok) {
       const body = await res.text();
@@ -468,6 +493,7 @@ export class SupabaseAdapter {
       method: 'POST',
       headers: { apikey: this.anonKey, 'Content-Type': 'application/json' },
       body: JSON.stringify({ refresh_token: this.session.refresh_token }),
+      signal: withTimeout(),
     });
     if (!res.ok) throw new Error('Session expired.');
     this.session = await res.json();
@@ -488,6 +514,7 @@ export class SupabaseAdapter {
     if (prefer) headers.Prefer = prefer;
     const res = await fetch(`${this.url}/rest/v1/${path}`, {
       method, headers, body: body ? JSON.stringify(body) : undefined,
+      signal: withTimeout(),
     });
 
     // An access token lasts an hour. A phone in a pocket between cookie stops

@@ -1,9 +1,9 @@
 /* Scoring: pick a stop, pick an item, score it against the anchored rubric. */
 
-import { el, icon, ICONS, clear, toast, money } from '../lib/dom.js?v=a8ce5f64';
-import { state, subscribe, emit, stopById } from '../lib/state.js?v=a8ce5f64';
-import { totalScore, recipeScore, requestPersistence } from '../lib/storage.js?v=a8ce5f64';
-import { CLUSTER_COLOURS } from './stops.js?v=a8ce5f64';
+import { el, icon, ICONS, clear, toast, money } from '../lib/dom.js?v=4fe7b37d';
+import { state, subscribe, emit, stopById } from '../lib/state.js?v=4fe7b37d';
+import { totalScore, recipeScore, requestPersistence } from '../lib/storage.js?v=4fe7b37d';
+import { CLUSTER_COLOURS } from './stops.js?v=4fe7b37d';
 
 let draft = null;
 
@@ -231,6 +231,7 @@ function renderForm(host, stop, item) {
     const btn = e.currentTarget;
     btn.disabled = true;
     try {
+      if (!state.store) throw new Error('Still connecting to the database. Try again in a moment.');
       const saved = await state.store.saveRating({
         stopId: stop.id,
         itemId: item.id,
