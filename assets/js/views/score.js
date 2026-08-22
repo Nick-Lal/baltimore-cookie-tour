@@ -1,9 +1,9 @@
 /* Scoring: pick a stop, pick an item, score it against the anchored rubric. */
 
-import { el, icon, ICONS, clear, toast, money } from '../lib/dom.js?v=09afea41';
-import { state, subscribe, emit, stopById, markSoldOut, isSoldOut } from '../lib/state.js?v=09afea41';
-import { totalScore, recipeScore, requestPersistence } from '../lib/storage.js?v=09afea41';
-import { CLUSTER_COLOURS } from './stops.js?v=09afea41';
+import { el, icon, ICONS, clear, toast, money } from '../lib/dom.js?v=faf1a786';
+import { state, subscribe, emit, stopById, markSoldOut, isSoldOut } from '../lib/state.js?v=faf1a786';
+import { totalScore, recipeScore, requestPersistence } from '../lib/storage.js?v=faf1a786';
+import { CLUSTER_COLOURS } from './stops.js?v=faf1a786';
 
 let draft = null;
 
@@ -289,7 +289,7 @@ export function render() {
   if (!state.taster) {
     host.append(el('div', { class: 'empty' }, [
       el('h3', { class: 'headline', text: 'Who is tasting?' }),
-      el('p', { class: 'callout', text: 'Put a name in first, so your scores stay yours and the two of you can compare afterwards.' }),
+      el('p', { class: 'callout', text: 'Put a name in first, so your scores stay yours and you can compare them afterwards.' }),
       el('button', {
         class: 'btn btn--filled', type: 'button', style: { marginTop: 'var(--sp-5)' },
         onclick: () => document.querySelector('[data-view="settings"]').click(),

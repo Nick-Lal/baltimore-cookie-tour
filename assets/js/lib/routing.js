@@ -17,7 +17,7 @@
  * as though it were measured.
  */
 
-import { haversineKm, decodePolyline } from './geo.js?v=09afea41';
+import { haversineKm, decodePolyline } from './geo.js?v=faf1a786';
 
 /*
  * A 14x14 street-network matrix for both profiles is committed to the repo,
@@ -31,7 +31,7 @@ let MATRIX = null;
 export async function loadMatrix() {
   if (MATRIX) return MATRIX;
   try {
-    const res = await fetch('data/matrix.json');
+    const res = await fetch('data/matrix.json?v=faf1a786');
     if (res.ok) MATRIX = await res.json();
   } catch {
     MATRIX = null;
@@ -109,7 +109,7 @@ export const MODES = {
 export const SCOOTER_PRICING = { unlock: 1.0, perMinute: 0.39 };
 
 /*
- * Only walk and scooter are ever suggested. This is a date, and the brief was
+ * Only walk and scooter are ever suggested. The brief was
  * a mix of walking and Lime scooters, so a car is something you have to ask
  * for rather than something the site quietly picks for you. Long legs get an
  * advisory instead of a mode change.

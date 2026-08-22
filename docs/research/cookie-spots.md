@@ -119,8 +119,8 @@ when you are five cookies deep and need something to reset your palate.
 
 **Ovenbird Bakery, Highlandtown** — 3925 Gough St #2, 21224 — 39.2885, -76.5639 — *Confirmed*
 
-The third Ovenbird and the one with the longest hours: 8am to 7pm on weekdays. If your date
-starts late, this is often the only serious bakery still open. Same Chocolate ChiRp.
+The third Ovenbird and the one with the longest hours: 8am to 7pm on weekdays. If you are starting
+late, this is often the only serious bakery still open. Same Chocolate ChiRp.
 
 ### South cluster: Federal Hill
 
@@ -176,7 +176,7 @@ Fells Point is the densest pair: Pitango and Sacré Sucré are 200 metres apart 
 network. Chestnut Avenue in Hampden is next, with Harmony and Common Ground 225 metres apart,
 then Harbor East, where Ovenbird and Kneads are 300 metres apart. The longest gap between any
 two clusters is Hampden to Highlandtown, just under 10 km, which is a 40 minute scooter ride and
-not a walk anyone should attempt on a date.
+not a walk anyone should attempt mid-tour.
 
 Every figure here comes from the committed walking matrix in `data/matrix.json` rather than from
 eyeballing a map.

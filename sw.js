@@ -11,7 +11,7 @@
  * is an excellent way to serve last week's bug forever.
  */
 
-const BUILD = '09afea41';
+const BUILD = 'faf1a786';
 const SHELL = `cookietour-shell-${BUILD}`;
 const TILES = `cookietour-tiles-${BUILD}`;
 const TILE_LIMIT = 300;
@@ -22,24 +22,24 @@ const PRECACHE = [
   './',
   './index.html',
   './manifest.webmanifest',
-  './assets/css/themes.css?v=09afea41',
-  './assets/css/app.css?v=09afea41',
-  './assets/css/views.css?v=09afea41',
-  './assets/js/app.js?v=09afea41',
-  './assets/js/themes.js?v=09afea41',
-  './assets/js/lib/dom.js?v=09afea41',
-  './assets/js/lib/geo.js?v=09afea41',
-  './assets/js/lib/state.js?v=09afea41',
-  './assets/js/lib/storage.js?v=09afea41',
-  './assets/js/lib/routing.js?v=09afea41',
-  './assets/js/views/stops.js?v=09afea41',
-  './assets/js/views/route.js?v=09afea41',
-  './assets/js/views/score.js?v=09afea41',
-  './assets/js/views/results.js?v=09afea41',
-  './assets/js/views/settings.js?v=09afea41',
-  './data/stops.json',
-  './data/rubric.json',
-  './data/matrix.json',
+  './assets/css/themes.css?v=faf1a786',
+  './assets/css/app.css?v=faf1a786',
+  './assets/css/views.css?v=faf1a786',
+  './assets/js/app.js?v=faf1a786',
+  './assets/js/themes.js?v=faf1a786',
+  './assets/js/lib/dom.js?v=faf1a786',
+  './assets/js/lib/geo.js?v=faf1a786',
+  './assets/js/lib/state.js?v=faf1a786',
+  './assets/js/lib/storage.js?v=faf1a786',
+  './assets/js/lib/routing.js?v=faf1a786',
+  './assets/js/views/stops.js?v=faf1a786',
+  './assets/js/views/route.js?v=faf1a786',
+  './assets/js/views/score.js?v=faf1a786',
+  './assets/js/views/results.js?v=faf1a786',
+  './assets/js/views/settings.js?v=faf1a786',
+  './data/stops.json?v=faf1a786',
+  './data/rubric.json?v=faf1a786',
+  './data/matrix.json?v=faf1a786',
   './vendor/leaflet/leaflet.js',
   './vendor/leaflet/leaflet.css',
   './vendor/leaflet/images/marker-icon.png',

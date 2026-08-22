@@ -158,7 +158,7 @@ check('sw.js declares a build id', () => {
 
 check('every precached asset carries the current build stamp', () => {
   const unstamped = precache
-    .filter((u) => /^\.\/assets\/(css|js)\//.test(u))
+    .filter((u) => /^\.\/(assets\/(css|js)|data)\//.test(u))
     .filter((u) => !u.endsWith(`?v=${build}`));
   if (unstamped.length) {
     throw new Error(
@@ -167,10 +167,27 @@ check('every precached asset carries the current build stamp', () => {
   }
 });
 
-check('nothing outside assets/css and assets/js got stamped', () => {
-  const wrong = precache.filter((u) => !/^\.\/assets\/(css|js)\//.test(u) && u.includes('?v='));
+check('navigations are not stamped', () => {
+  const wrong = precache.filter((u) => !/^\.\/(assets\/(css|js)|data)\//.test(u) && u.includes('?v='));
   if (wrong.length) {
-    throw new Error(`navigations and runtime JSON are requested without a query: ${wrong.join(', ')}`);
+    throw new Error(`navigations are requested without a query: ${wrong.join(', ')}`);
+  }
+});
+
+check('the data files are fetched with the same stamp they are cached under', () => {
+  const fetched = [...read('assets/js/app.js').matchAll(/fetch\('(data\/[^']+)'/g)]
+    .concat([...read('assets/js/lib/routing.js').matchAll(/fetch\('(data\/[^']+)'/g)])
+    .map((m) => m[1]);
+  if (!fetched.length) throw new Error('found no data fetches — the regex or the call shape changed');
+  for (const url of fetched) {
+    if (!url.endsWith(`?v=${build}`)) {
+      throw new Error(
+        `${url} is fetched unstamped, so a returning visitor can be served a cached copy of ` +
+        `yesterday's opening hours. Run tools/stamp-version.mjs`);
+    }
+    if (!precache.includes('./' + url)) {
+      throw new Error(`${url} is fetched but not precached under that URL, so it will not open offline`);
+    }
   }
 });
 

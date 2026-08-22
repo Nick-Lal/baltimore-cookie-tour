@@ -1,10 +1,10 @@
 /* Setup: identity, party, storage, themes and data export. */
 
-import { el, icon, ICONS, clear, toast } from '../lib/dom.js?v=09afea41';
-import { state, emit, shareUrl, mintPartyCode } from '../lib/state.js?v=09afea41';
-import { renderThemePicker, currentTheme } from '../themes.js?v=09afea41';
-import { requestPersistence } from '../lib/storage.js?v=09afea41';
-import { refresh as refreshResults } from './results.js?v=09afea41';
+import { el, icon, ICONS, clear, toast } from '../lib/dom.js?v=faf1a786';
+import { state, emit, shareUrl, mintPartyCode } from '../lib/state.js?v=faf1a786';
+import { renderThemePicker, currentTheme } from '../themes.js?v=faf1a786';
+import { requestPersistence } from '../lib/storage.js?v=faf1a786';
+import { refresh as refreshResults } from './results.js?v=faf1a786';
 
 function statusCard() {
   const store = state.store;
@@ -50,7 +50,7 @@ function statusCard() {
  *
  * This used to be gated to store.mode === 'local'. The live site runs on the
  * cloud adapter, so the gate meant the feature only existed in the mode nobody
- * is in — and sharing one phone is the normal case on a date. Both adapters
+ * is in — and sharing one phone is a normal thing to do. Both adapters
  * implement the same three methods now; see the long note in storage.js for
  * why the cloud version has to juggle sessions to do it.
  */

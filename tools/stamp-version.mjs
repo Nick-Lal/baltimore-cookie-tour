@@ -55,13 +55,22 @@ let touched = 0;
   if (after !== before) { writeFileSync(p, after); touched++; }
 }
 
-// every relative import inside the module graph
+/*
+ * Every relative import inside the module graph, and the data files fetched at
+ * runtime.
+ *
+ * The JSON needed this as much as the code did. stops.json carries opening
+ * hours and closures, and it was fetched with a bare URL, so a returning
+ * visitor could be served yesterday's copy out of the browser cache — sent to
+ * a bakery that had shut, by a page that had been corrected days earlier.
+ */
 for (const rel of globSync('assets/js/**/*.js', { cwd: root })) {
   const p = join(root, rel);
   const before = readFileSync(p, 'utf8');
   const after = before
     .replace(STAMP, '')
-    .replace(/(from\s+'(?:\.\.?\/)[^']+\.js)'/g, `$1?v=${version}'`);
+    .replace(/(from\s+'(?:\.\.?\/)[^']+\.js)'/g, `$1?v=${version}'`)
+    .replace(/(fetch\('data\/[a-z-]+\.json)'/g, `$1?v=${version}'`);
   if (after !== before) { writeFileSync(p, after); touched++; }
 }
 
@@ -76,15 +85,15 @@ for (const rel of globSync('assets/js/**/*.js', { cwd: root })) {
  * load after each deploy, which is exactly the load where the network is least
  * likely to be there.
  *
- * Only CSS and JS are stamped. './' and index.html are navigations and carry no
- * query, and the JSON under data/ is fetched at runtime without one.
+ * './' and index.html are navigations and carry no query, so they stay bare.
+ * Everything else the page asks for by URL gets the stamp.
  */
 {
   const p = join(root, 'sw.js');
   const before = readFileSync(p, 'utf8');
   const after = before
     .replace(BUILD_LINE, `const BUILD = '${version}';`)
-    .replace(/^(\s*'\.\/assets\/(?:css|js)\/[^'?]+)(?:\?v=[0-9a-f]{8})?',$/gm,
+    .replace(/^(\s*'\.\/(?:assets\/(?:css|js)|data)\/[^'?]+)(?:\?v=[0-9a-f]{8})?',$/gm,
              `$1?v=${version}',`);
   if (after !== before) { writeFileSync(p, after); touched++; }
 }

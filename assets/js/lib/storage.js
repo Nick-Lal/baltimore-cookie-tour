@@ -872,7 +872,7 @@ export class SupabaseAdapter {
   }
   get partySize() { return this._partyMemberIds.length; }
 
-  /* Membership was loaded once at boot. If your date joins after your session
+  /* Membership was loaded once at boot. If someone joins after your session
      started, which is the normal order, their scores never appeared until you
      fully reloaded. Cheap to re-check, so re-check. */
   async refreshParties() {

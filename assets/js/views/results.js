@@ -1,8 +1,8 @@
 /* Results: rankings, factor breakdowns, disagreements and movement over time. */
 
-import { el, clear, wireSegmented, toast } from '../lib/dom.js?v=09afea41';
-import { state, subscribe, stopById } from '../lib/state.js?v=09afea41';
-import { FACTORS } from '../lib/storage.js?v=09afea41';
+import { el, clear, wireSegmented, toast } from '../lib/dom.js?v=faf1a786';
+import { state, subscribe, stopById } from '../lib/state.js?v=faf1a786';
+import { FACTORS } from '../lib/storage.js?v=faf1a786';
 
 const mean = (xs) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0);
 
@@ -426,14 +426,14 @@ export function render() {
   if (soloParty) {
     host.append(el('div', { class: 'pad', style: { marginBottom: 'var(--sp-4)' } },
       el('div', { class: 'notice' }, [
-        el('span', { text: 'No party yet, so this is just your own scores. Start one in Setup and send the link to put both of you on the same board.' }),
+        el('span', { text: 'No party yet, so this is just your own scores. Start one in Setup and send the link to put everyone on the same board.' }),
       ])));
   }
 
   if (!ratings.length) {
     host.append(el('div', { class: 'empty' }, [
       el('h3', { class: 'headline', text: 'Nothing scored yet' }),
-      el('p', { class: 'callout', text: 'Score a cookie and the rankings turn up here, along with the factor breakdowns and wherever the two of you disagree most.' }),
+      el('p', { class: 'callout', text: 'Score a cookie and the rankings turn up here, along with the factor breakdowns and wherever you disagree most.' }),
       el('button', {
         class: 'btn btn--filled', type: 'button', style: { marginTop: 'var(--sp-5)' },
         onclick: () => document.querySelector('[data-view="score"]').click(),
@@ -496,7 +496,7 @@ export function render() {
 /*
  * Near-live refresh.
  *
- * On a date the useful moment is watching their score land next to yours. This
+ * The useful moment is watching someone else's score land next to yours. This
  * polls instead of holding a websocket: for two people the difference is not
  * observable, it costs one small query, and it cannot leave a socket wedged
  * open in a pocket. It runs only while the Results tab is actually on screen,
@@ -518,7 +518,7 @@ function syncPolling() {
   if (!pollingShouldRun()) return;
   pollTimer = setInterval(async () => {
     if (!pollingShouldRun()) { syncPolling(); return; }
-    // If your date joined after your session booted, which is the normal
+    // If someone joined after your session booted, which is the normal
     // order, membership loaded at boot is already stale and their scores would
     // never appear until a full reload.
     await state.store.refreshParties?.();

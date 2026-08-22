@@ -2,8 +2,8 @@
  * Shared application state.
  *
  * A small observable object. The selected route also lives in the URL hash so
- * one person can send the other the plan they just built, which on a date for
- * two phones is the first thing anyone tries.
+ * one person can send the others the plan they just built, which on a tour
+ * spread across several phones is the first thing anyone tries.
  */
 
 const listeners = new Set();

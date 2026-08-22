@@ -196,7 +196,7 @@
     "priorWeight": 1.5,
     "showSampleSize": true,
     "minScoresForBadge": 2,
-    "priorWeightNote": "1.5 is tuned for two people on a date, where two scores per item is the natural ceiling rather than a small sample. It leaves a single score weighted 40 percent against the overall mean and a pair weighted 57 percent, which shrinks a lone outlier hard without flattening everything toward the average. A larger prior would make every ranking on a two person tour read as the global mean."
+    "priorWeightNote": "1.5 is tuned for a small group, where two or three scores per item is the natural ceiling rather than a small sample. It leaves a single score weighted 40 percent against the overall mean and a pair weighted 57 percent, which shrinks a lone outlier hard without flattening everything toward the average. A larger prior would make every ranking on a short tour read as the global mean."
   },
 
   "notes": [

@@ -1,13 +1,16 @@
 /* Route building: order, modes, timing and the itinerary. */
 
-import { el, icon, ICONS, clear, toast, money } from '../lib/dom.js?v=09afea41';
-import { state, subscribe, pickedStops, moveStop, setOrder, togglePick, shareUrl } from '../lib/state.js?v=09afea41';
-import { MODES, routeItinerary, itinerarySummary, suggestMode, modeOptionsFor, legAdvisory, schedule, matrixKm, SCOOTER_PRICING, directionsUrl } from '../lib/routing.js?v=09afea41';
-import { optimiseOrder, formatKm, formatMins } from '../lib/geo.js?v=09afea41';
-import { drawRoute, fitToStops, CLUSTER_COLOURS } from './stops.js?v=09afea41';
+import { el, icon, ICONS, clear, toast, money } from '../lib/dom.js?v=faf1a786';
+import { state, subscribe, pickedStops, moveStop, setOrder, togglePick, shareUrl } from '../lib/state.js?v=faf1a786';
+import { MODES, routeItinerary, itinerarySummary, suggestMode, modeOptionsFor, legAdvisory, schedule, matrixKm, SCOOTER_PRICING, directionsUrl } from '../lib/routing.js?v=faf1a786';
+import { optimiseOrder, formatKm, formatMins } from '../lib/geo.js?v=faf1a786';
+import { drawRoute, fitToStops, CLUSTER_COLOURS } from './stops.js?v=faf1a786';
 
 let startAt = defaultStart();
 let dwellMin = 20;
+/* Cookie and scooter costs are per person, and this was hardcoded to two with
+   no way to change it, which quietly understated the bill for any larger group
+   and overstated it for anyone going alone. */
 let partySize = 2;
 let building = false;
 let restale = false;
@@ -178,7 +181,7 @@ function summaryCard(sum) {
     [String(sum.stops), sum.stops === 1 ? 'stop' : 'stops'],
     [formatKm(sum.km), 'on the ground'],
     [formatMins(sum.totalMin), 'door to door'],
-    [money(sum.totalCost), `for ${sum.partySize}`],
+    [money(sum.totalCost), sum.partySize === 1 ? 'for one' : `for ${sum.partySize}`],
   ];
   return el('div', { class: 'card' }, [
     el('div', { class: 'summary-grid' }, cells.map(([v, l]) =>
@@ -226,16 +229,30 @@ function controlsCard() {
         }),
       ]),
     ]),
-    el('div', {}, [
-      el('label', { class: 'form-label', for: 'dwell', text: 'Minutes per stop' }),
-      el('input', {
-        class: 'field', id: 'dwell', type: 'number', min: '5', max: '90', step: '5',
-        value: String(dwellMin),
-        onchange: (e) => {
-          const v = Number(e.target.value);
-          if (v >= 5 && v <= 90) { dwellMin = v; render(); }
-        },
-      }),
+    el('div', { class: 'row row--between', style: { gap: 'var(--sp-4)' } }, [
+      el('div', { style: { flex: '1', minWidth: 0 } }, [
+        el('label', { class: 'form-label', for: 'dwell', text: 'Minutes per stop' }),
+        el('input', {
+          class: 'field', id: 'dwell', type: 'number', min: '5', max: '90', step: '5',
+          value: String(dwellMin),
+          onchange: (e) => {
+            const v = Number(e.target.value);
+            if (v >= 5 && v <= 90) { dwellMin = v; render(); }
+          },
+        }),
+      ]),
+      el('div', { style: { flex: '1', minWidth: 0 } }, [
+        el('label', { class: 'form-label', for: 'party-size', text: 'People' }),
+        el('input', {
+          class: 'field', id: 'party-size', type: 'number', min: '1', max: '12', step: '1',
+          inputmode: 'numeric', value: String(partySize),
+          onchange: (e) => {
+            const v = Number(e.target.value);
+            if (v >= 1 && v <= 12) { partySize = v; render(); }
+            else e.target.value = String(partySize);
+          },
+        }),
+      ]),
     ]),
     el('div', { class: 'row', style: { gap: 'var(--sp-2)' } }, [
       el('button', {

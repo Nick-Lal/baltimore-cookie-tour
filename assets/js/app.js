@@ -1,15 +1,15 @@
 /* Boot: load data, wire the shell, hand off to the views. */
 
-import { initTheme, applyTheme } from './themes.js?v=09afea41';
-import { toast } from './lib/dom.js?v=09afea41';
-import { state, emit, subscribe, readHash, restorePicks, readPartyFromHash } from './lib/state.js?v=09afea41';
-import { createStore } from './lib/storage.js?v=09afea41';
-import { loadMatrix } from './lib/routing.js?v=09afea41';
-import { initMap, initStopsView, renderStopList, renderMarkers, hideDetail, fitToStops, renderPicker, initPickerView } from './views/stops.js?v=09afea41';
-import { initRouteView, rebuildRoute, render as renderRoute } from './views/route.js?v=09afea41';
-import { initScoreView, render as renderScore } from './views/score.js?v=09afea41';
-import { initResultsView, refresh as refreshResults } from './views/results.js?v=09afea41';
-import { initSettingsView, render as renderSettings } from './views/settings.js?v=09afea41';
+import { initTheme, applyTheme } from './themes.js?v=faf1a786';
+import { toast } from './lib/dom.js?v=faf1a786';
+import { state, emit, subscribe, readHash, restorePicks, readPartyFromHash } from './lib/state.js?v=faf1a786';
+import { createStore } from './lib/storage.js?v=faf1a786';
+import { loadMatrix } from './lib/routing.js?v=faf1a786';
+import { initMap, initStopsView, renderStopList, renderMarkers, hideDetail, fitToStops, renderPicker, initPickerView } from './views/stops.js?v=faf1a786';
+import { initRouteView, rebuildRoute, render as renderRoute } from './views/route.js?v=faf1a786';
+import { initScoreView, render as renderScore } from './views/score.js?v=faf1a786';
+import { initResultsView, refresh as refreshResults } from './views/results.js?v=faf1a786';
+import { initSettingsView, render as renderSettings } from './views/settings.js?v=faf1a786';
 
 initTheme();
 
@@ -247,8 +247,8 @@ function initNetworkStatus() {
 
 async function boot() {
   const [stopsRes, rubricRes] = await Promise.all([
-    fetch('data/stops.json'),
-    fetch('data/rubric.json'),
+    fetch('data/stops.json?v=faf1a786'),
+    fetch('data/rubric.json?v=faf1a786'),
   ]);
   if (!stopsRes.ok || !rubricRes.ok) throw new Error('Could not load the stop data.');
 
