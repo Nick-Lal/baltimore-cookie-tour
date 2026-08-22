@@ -1,9 +1,9 @@
 /* Map, stop list and stop detail. */
 
-import { el, icon, ICONS, clear, toast, wireSegmented, DAY_NAMES, prettyTime, money } from '../lib/dom.js?v=ec22ffb4';
-import { state, subscribe, emit, stopById, isPicked, togglePick, setOrder, clearPicks, DEFAULT_ROUTE } from '../lib/state.js?v=ec22ffb4';
-import { openAt, placeUrl } from '../lib/routing.js?v=ec22ffb4';
-import { boundsOf, haversineKm } from '../lib/geo.js?v=ec22ffb4';
+import { el, icon, ICONS, clear, toast, wireSegmented, DAY_NAMES, prettyTime, money } from '../lib/dom.js?v=09afea41';
+import { state, subscribe, emit, stopById, isPicked, togglePick, setOrder, clearPicks, DEFAULT_ROUTE, isSoldOut } from '../lib/state.js?v=09afea41';
+import { openAt, placeUrl } from '../lib/routing.js?v=09afea41';
+import { boundsOf, haversineKm } from '../lib/geo.js?v=09afea41';
 
 export const CLUSTER_COLOURS = {
   hampden: '#E4572E',
@@ -44,7 +44,14 @@ export function initMap() {
   L.control.zoom({ position: 'bottomright' }).addTo(map);
   setTiles();
 
-  document.addEventListener('themechange', () => setTiles());
+  document.addEventListener('themechange', () => {
+    setTiles();
+    // The route line is drawn with a colour read from the theme at draw
+    // time, so switching themes left it in the old palette until the next
+    // rebuild. Markers carry cluster colours for the same reason.
+    if (state.legs?.length) drawRoute(state.legs);
+    renderMarkers();
+  });
   return map;
 }
 
@@ -262,7 +269,14 @@ function stopRow(stop) {
         stop.branch ? el('span', { class: 'stop-row__branch', text: `  ${stop.branch}` }) : null,
       ]),
       el('div', { class: 'stop-row__sig', text: stop.signature }),
-      el('div', { class: 'stop-row__meta' }, [confidenceBadge(stop), openBadge(stop)]),
+      el('div', { class: 'stop-row__meta' }, [
+        confidenceBadge(stop),
+        openBadge(stop),
+        isSoldOut(stop.id) ? el('span', { class: 'badge' }, [
+          el('span', { class: 'badge__dot dot-shut' }),
+          el('span', { text: 'Out today' }),
+        ]) : null,
+      ]),
     ]),
     addBtn,
   ]);
@@ -529,5 +543,12 @@ export function initPickerView() {
   });
   subscribe((reason) => {
     if (reason === 'picked' && state.view === 'pick') renderPicker();
+    // A stop marked out today changes both lists and the pins, and it is
+    // marked from the score screen, so the map is not looking when it happens.
+    if (reason === 'soldout') {
+      renderStopList();
+      renderMarkers();
+      if (state.view === 'pick') renderPicker();
+    }
   });
 }

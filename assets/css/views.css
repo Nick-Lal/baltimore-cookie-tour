@@ -478,3 +478,10 @@ body.is-offline .tabbar::before {
   text-decoration: none;
 }
 .leg__nav:active { opacity: 0.6; }
+
+/* The recipe score, under the factor bars it is derived from. */
+.recipe-line {
+  margin-top: var(--sp-4);
+  padding-top: var(--sp-3);
+  border-top: 1px solid var(--separator);
+}

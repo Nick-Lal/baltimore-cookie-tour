@@ -1,9 +1,9 @@
 /* Scoring: pick a stop, pick an item, score it against the anchored rubric. */
 
-import { el, icon, ICONS, clear, toast, money } from '../lib/dom.js?v=ec22ffb4';
-import { state, subscribe, emit, stopById } from '../lib/state.js?v=ec22ffb4';
-import { totalScore, recipeScore, requestPersistence } from '../lib/storage.js?v=ec22ffb4';
-import { CLUSTER_COLOURS } from './stops.js?v=ec22ffb4';
+import { el, icon, ICONS, clear, toast, money } from '../lib/dom.js?v=09afea41';
+import { state, subscribe, emit, stopById, markSoldOut, isSoldOut } from '../lib/state.js?v=09afea41';
+import { totalScore, recipeScore, requestPersistence } from '../lib/storage.js?v=09afea41';
+import { CLUSTER_COLOURS } from './stops.js?v=09afea41';
 
 let draft = null;
 
@@ -77,15 +77,29 @@ function renderPickItem(host, stop) {
       el('span', { class: 'menu-item__price', text: money(item.priceUSD) }),
     ])))));
 
-  host.append(el('div', { class: 'pad', style: { marginTop: 'var(--sp-4)' } },
+  /* This used to toast "Noted:" and record nothing, so the stop looked
+     untouched a minute later and you could walk back to it. Now it marks the
+     stop for the rest of the day, which is the only claim it can honestly
+     make: the leaderboard is append-only and an empty tray is not a score. */
+  const sold = isSoldOut(stop.id);
+  host.append(el('div', { class: 'pad', style: { marginTop: 'var(--sp-4)' } }, [
     el('button', {
-      class: 'btn btn--grey btn--full', type: 'button',
+      class: `btn ${sold ? 'btn--tinted' : 'btn--grey'} btn--full`, type: 'button',
       onclick: () => {
-        toast(`Noted: nothing doing at ${stop.name} today.`);
-        state.scoring = null;
+        const now = markSoldOut(stop.id, !sold);
+        toast(now
+          ? `Marked ${stop.name} as out for today.`
+          : `${stop.name} is back on.`);
         render();
       },
-    }, 'They had none today')));
+    }, sold ? 'Back on: they do have some' : 'They had none today'),
+    el('p', {
+      class: 'footnote tertiary', style: { marginTop: 'var(--sp-2)' },
+      text: sold
+        ? 'Marked on your route and your stop list. It clears itself tomorrow.'
+        : 'Marks the stop for the rest of today so you do not walk back. Nothing is sent to the leaderboard.',
+    }),
+  ]));
 }
 
 /* -------------------------------------------------------------- score form */

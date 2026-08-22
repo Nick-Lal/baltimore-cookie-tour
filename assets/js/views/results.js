@@ -1,8 +1,8 @@
 /* Results: rankings, factor breakdowns, disagreements and movement over time. */
 
-import { el, clear, wireSegmented, toast } from '../lib/dom.js?v=ec22ffb4';
-import { state, subscribe, stopById } from '../lib/state.js?v=ec22ffb4';
-import { FACTORS } from '../lib/storage.js?v=ec22ffb4';
+import { el, clear, wireSegmented, toast } from '../lib/dom.js?v=09afea41';
+import { state, subscribe, stopById } from '../lib/state.js?v=09afea41';
+import { FACTORS } from '../lib/storage.js?v=09afea41';
 
 const mean = (xs) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0);
 
@@ -66,8 +66,40 @@ function rank(ratings, itemType) {
 
 function factorBars(item, itemType) {
   const rubric = state.rubric.rubrics[itemType === 'cookie' ? 'cookie' : 'general'];
-  return el('div', { style: { padding: 'var(--sp-3) var(--sp-4) var(--sp-4)' } },
-    rubric.factors.map((f) => {
+
+  /*
+   * The recipe score, at last.
+   *
+   * Postgres has been computing this on every insert since the schema was
+   * written, rank() has been averaging it, and nothing ever displayed it. It is
+   * the total with freshness removed and the remaining weights renormalised,
+   * which separates the two things a bad score can mean: the bakery cannot make
+   * a cookie, or you turned up at four o'clock. Only the first is the bakery's
+   * fault, and only the first should decide whether you go back.
+   *
+   * Shown next to the total rather than instead of it. A stale cookie is still
+   * a worse cookie, and pretending otherwise would flatter every place that
+   * bakes once at dawn.
+   */
+  const fresh = item.factors.freshness;
+  const gap = Number.isFinite(item.recipe) ? item.recipe - item.adjusted : null;
+
+  const recipeLine = Number.isFinite(item.recipe)
+    ? el('div', { class: 'recipe-line' }, [
+        el('div', { class: 'row row--between' }, [
+          el('span', { class: 'list__title', text: 'Recipe score' }),
+          el('span', { class: 'rank-row__score tabular', text: item.recipe.toFixed(1) }),
+        ]),
+        el('p', { class: 'footnote secondary', style: { marginTop: '2px' }, text:
+          gap != null && gap >= 3 && Number.isFinite(fresh) && fresh < 7
+            ? `Freshness pulled this down. On the day it is baked properly it is nearer ` +
+              `${item.recipe.toFixed(1)} than ${item.adjusted.toFixed(1)}, so it is worth a second try earlier.`
+            : 'The same score with freshness taken out, so it measures the recipe rather than your timing.' }),
+      ])
+    : null;
+
+  return el('div', { style: { padding: 'var(--sp-3) var(--sp-4) var(--sp-4)' } }, [
+    ...rubric.factors.map((f) => {
       const v = item.factors[f.id] ?? 0;
       return el('div', { class: 'factor-bar' }, [
         el('span', { class: 'factor-bar__name', text: f.name }),
@@ -76,7 +108,9 @@ function factorBars(item, itemType) {
         })),
         el('span', { class: 'factor-bar__val tabular', text: v.toFixed(1) }),
       ]);
-    }));
+    }),
+    recipeLine,
+  ]);
 }
 
 function rankRow(item, i, itemType) {

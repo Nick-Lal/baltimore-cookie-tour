@@ -72,7 +72,8 @@ const KEYS = {
 /* Everything this site writes to the device, in one place. A reset that
    forgets a key leaves a ghost behind, and the ghost is always the confusing
    kind: a queued score from a taster who no longer exists. */
-export const DEVICE_KEYS = Object.values(KEYS).concat(['cookietour.picks', 'cookietour.routes.v1']);
+export const DEVICE_KEYS = Object.values(KEYS)
+  .concat(['cookietour.picks', 'cookietour.routes.v1', 'cookietour.soldout']);
 
 export const itemKey = (stopId, itemId) => `${stopId}:${itemId}`;
 

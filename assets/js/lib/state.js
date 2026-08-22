@@ -221,3 +221,49 @@ export function mintPartyCode() {
   const n = crypto.getRandomValues(new Uint32Array(1))[0] % 900 + 100;
   return `${pick()}-${pick()}-${n}`;
 }
+
+/* ------------------------------------------------------- sold out today ---
+ * "They had none today" used to show a toast reading "Noted:" and then record
+ * nothing at all. That is worse than not having the button: it claims to have
+ * remembered something, so you trust it, and half an hour later the stop looks
+ * exactly as it did before and you walk back.
+ *
+ * This is deliberately device-local and deliberately dated. A bakery selling
+ * out is a fact about an afternoon, not about the bakery, so it expires on its
+ * own rather than needing to be cleared. Nothing goes to the leaderboard: an
+ * empty tray is not a score, and rating_events is append-only, so a mistaken
+ * tap there would be permanent.
+ */
+const SOLD_OUT_KEY = 'cookietour.soldout';
+
+const today = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
+
+function readSoldOut() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(SOLD_OUT_KEY) || '{}');
+    // Drop anything from a previous day on read, so it can never accumulate.
+    return raw && raw.date === today() && Array.isArray(raw.stops) ? raw : { date: today(), stops: [] };
+  } catch { return { date: today(), stops: [] }; }
+}
+
+export function isSoldOut(stopId) {
+  return readSoldOut().stops.includes(stopId);
+}
+
+export function soldOutCount() {
+  return readSoldOut().stops.length;
+}
+
+export function markSoldOut(stopId, sold = true) {
+  const cur = readSoldOut();
+  const set = new Set(cur.stops);
+  if (sold) set.add(stopId); else set.delete(stopId);
+  try {
+    localStorage.setItem(SOLD_OUT_KEY, JSON.stringify({ date: cur.date, stops: [...set] }));
+  } catch { /* private mode */ }
+  emit('soldout');
+  return sold;
+}
