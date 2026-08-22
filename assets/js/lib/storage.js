@@ -69,6 +69,11 @@ const KEYS = {
   roster: `${NS}.roster`,
 };
 
+/* Everything this site writes to the device, in one place. A reset that
+   forgets a key leaves a ghost behind, and the ghost is always the confusing
+   kind: a queued score from a taster who no longer exists. */
+export const DEVICE_KEYS = Object.values(KEYS).concat(['cookietour.picks', 'cookietour.routes.v1']);
+
 export const itemKey = (stopId, itemId) => `${stopId}:${itemId}`;
 
 export function totalScore(scores, itemType = 'cookie') {
@@ -165,6 +170,18 @@ export class LocalAdapter {
   /* Everyone who has entered a name. On this adapter that is everyone on this
      device, because there is nowhere else for them to be. */
   async listTasters() { return this._profiles.slice(); }
+
+  /* On this adapter the device IS the database, so a reset really does destroy
+     the scores. The caller is responsible for saying so first. */
+  async resetDevice() {
+    for (const k of DEVICE_KEYS) {
+      try { localStorage.removeItem(k); } catch { /* ignore */ }
+    }
+    this._profiles = [];
+    this._events = [];
+    this._taster = null;
+    return { destroyedScores: true };
+  }
 
   async switchProfile(id) {
     const p = this._profiles.find((x) => x.id === id);
@@ -644,6 +661,31 @@ export class SupabaseAdapter {
       if (isNetworkError(err)) return [];
       throw err;
     }
+  }
+
+  /*
+   * Forget this device.
+   *
+   * Clears the session, the extra tasters, the party and anything still queued.
+   * It does NOT touch the leaderboard: rating_events has no DELETE grant for
+   * any role a browser can reach, which is the whole basis of scores being
+   * append-only. So this is genuinely local, and everything already sent stays
+   * on the board under the name that wrote it.
+   *
+   * The one thing that is actually destroyed is unsent queued scores, so the
+   * caller has to say that out loud before calling.
+   */
+  async resetDevice() {
+    const lost = this.pending;
+    clearTimeout(this._timer);
+    for (const k of DEVICE_KEYS) {
+      try { localStorage.removeItem(k); } catch { /* ignore */ }
+    }
+    this.session = null;
+    this._taster = null;
+    this._partyIds = [];
+    this._partyMemberIds = [];
+    return { queuedScoresLost: lost };
   }
 
   /* ------------------------------------------------- two people, one phone --

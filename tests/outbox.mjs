@@ -19,7 +19,7 @@
  * and not dropped. That is the whole subject of this file.
  */
 
-import { LocalAdapter, SupabaseAdapter, isNetworkError, withTimeout } from '../assets/js/lib/storage.js';
+import { LocalAdapter, SupabaseAdapter, isNetworkError, withTimeout, DEVICE_KEYS } from '../assets/js/lib/storage.js';
 
 /* ------------------------------------------------------------- harness --- */
 
@@ -268,6 +268,52 @@ acheck('a queued score survives a timeout and flushes afterwards', async () => {
   const b = adapterAs('user-A', 'Nick');
   eq(await b.flushOutbox(), 1, 'sent after recovery');
   eq(b._readOutbox().length, 0, 'queue drained');
+});
+
+acheck('forgetting the device clears every key the site writes', async () => {
+  store.clear();
+  // Populate every key, including a couple written by other modules.
+  for (const k of DEVICE_KEYS) store.set(k, '"something"');
+  store.set('unrelated.app.key', '"keep me"');
+
+  const a = adapterAs('user-A', 'Nick');
+  await a.resetDevice();
+
+  const left = DEVICE_KEYS.filter((k) => store.has(k));
+  if (left.length) throw new Error(`left behind: ${left.join(', ')}`);
+  if (!store.has('unrelated.app.key')) throw new Error('cleared a key belonging to something else');
+});
+
+acheck('forgetting the device drops the session and the party', async () => {
+  store.clear();
+  const a = adapterAs('user-A', 'Nick');
+  a._partyIds = ['party-1'];
+  a._partyMemberIds = ['user-A', 'user-B'];
+  await a.resetDevice();
+  eq(a.session, null, 'session');
+  eq(a._taster, null, 'taster');
+  eq(a.inParty, false, 'still in a party');
+  eq(a.partySize, 0, 'party size');
+});
+
+acheck('forgetting the device reports how many unsent scores it destroys', async () => {
+  store.clear();
+  const a = adapterAs('user-A', 'Nick');
+  a._writeOutbox([
+    { ...ROW('user-A', 'kneads-bakeshop:cc-chunk'), _queued_at: 'x', _taster_name: 'Nick' },
+    { ...ROW('user-A', 'pitango-bakery:cc-cookie'), _queued_at: 'y', _taster_name: 'Nick' },
+  ]);
+  const res = await a.resetDevice();
+  eq(res.queuedScoresLost, 2, 'reported loss');
+  eq(a.pending, 0, 'queue cleared');
+});
+
+acheck('both adapters can forget the device', async () => {
+  for (const A of [LocalAdapter, SupabaseAdapter]) {
+    if (typeof A.prototype.resetDevice !== 'function') {
+      throw new Error(`${A.name} cannot reset, so the button would do nothing in that mode`);
+    }
+  }
 });
 
 /* ---------------------------------------------------------------- run --- */

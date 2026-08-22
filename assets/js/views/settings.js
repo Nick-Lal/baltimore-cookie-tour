@@ -1,10 +1,10 @@
 /* Setup: identity, party, storage, themes and data export. */
 
-import { el, icon, ICONS, clear, toast } from '../lib/dom.js?v=4fe7b37d';
-import { state, emit, shareUrl, mintPartyCode } from '../lib/state.js?v=4fe7b37d';
-import { renderThemePicker, currentTheme } from '../themes.js?v=4fe7b37d';
-import { requestPersistence } from '../lib/storage.js?v=4fe7b37d';
-import { refresh as refreshResults } from './results.js?v=4fe7b37d';
+import { el, icon, ICONS, clear, toast } from '../lib/dom.js?v=ec22ffb4';
+import { state, emit, shareUrl, mintPartyCode } from '../lib/state.js?v=ec22ffb4';
+import { renderThemePicker, currentTheme } from '../themes.js?v=ec22ffb4';
+import { requestPersistence } from '../lib/storage.js?v=ec22ffb4';
+import { refresh as refreshResults } from './results.js?v=ec22ffb4';
 
 function statusCard() {
   const store = state.store;
@@ -304,6 +304,51 @@ async function shareInvite(code) {
   } catch { /* dismissed */ }
 }
 
+/*
+ * Start fresh on this device.
+ *
+ * There was no way to do this at all: no sign out, no reset. Anything the
+ * device had picked up — a stale party, a second taster added for someone who
+ * is no longer here, a score queued in a dead spot that never sent — was
+ * permanent short of clearing site data in browser settings.
+ *
+ * It is deliberately about THIS DEVICE and says so, because on the cloud
+ * adapter it cannot be anything else: the leaderboard has no DELETE grant that
+ * a browser can reach. Promising to wipe the board here would be a lie.
+ */
+async function resetDeviceFlow() {
+  const store = state.store;
+  if (!store?.resetDevice) return;
+
+  const pending = store.pending ?? 0;
+  const cloud = store.mode === 'cloud';
+
+  const warning = cloud
+    ? 'Forget this device?\n\nThis clears your name, any extra tasters, your party and this ' +
+      'browser\'s sign-in. Scores already on the leaderboard stay there — they belong to ' +
+      'everyone now and cannot be removed from a browser.' +
+      (pending ? `\n\n${pending} score${pending === 1 ? '' : 's'} queued on this device ` +
+                 'have not been sent yet, and will be lost.' : '')
+    : 'Forget this device?\n\nScores are stored only on this device, so this deletes them ' +
+      'for good. Download them first if you want to keep them.';
+
+  if (!confirm(warning)) return;
+
+  try {
+    await store.resetDevice();
+    state.taster = null;
+    state.ratings = [];
+    state.history = [];
+    state.tasters = [];
+    emit('taster');
+    // A reload is the honest way back: the cloud adapter needs a fresh
+    // anonymous sign-in, and half the app is holding the old one.
+    location.reload();
+  } catch (err) {
+    toast(err.message);
+  }
+}
+
 /* ----------------------------------------------------------------- render */
 
 export function render() {
@@ -330,6 +375,12 @@ export function render() {
 
   const durability = document.getElementById('identity-durability');
   if (durability) { clear(durability); durability.append(durabilityCard()); }
+
+  const reset = document.getElementById('reset-device');
+  if (reset && !reset.dataset.wired) {
+    reset.dataset.wired = '1';
+    reset.addEventListener('click', () => resetDeviceFlow());
+  }
 
   const picker = document.getElementById('theme-picker');
   if (picker) renderThemePicker(picker);
